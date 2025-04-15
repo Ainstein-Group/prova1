@@ -1,51 +1,74 @@
 ```markdown
-# NewsAgent
+#  Bandiera Italiana Assembly
 
-This project provides a basic framework for retrieving and summarizing news articles from various sources. 
+Questo script assembly disegna la bandiera italiana in un terminale.
 
-## Installation
+## Requisiti
 
-```bash
-pip install requests beautifulsoup4 crewai 
-```
+*  Un assembler compatibile con NASM
 
-## Usage
+##  Utilizzo
 
-The `NewsAgent` class can be instantiated with a list of news sources, categories of interest, the desired length of article summaries, and the number of news items to retrieve. 
-
-```python
-agent = NewsAgent(news_source=["bbc.com", "nytimes.com"], categories=["technology", "politics"], summary_length=150, num_news=5)
-agent.generate_daily_briefing() 
-```
-
-This will fetch the latest news articles from BBC and NYT, focusing on technology and politics, generate summaries for each article, and display them in a user-friendly format.
-
-## Example
-
-```python
-from NEWS_AGENT import NewsAgent
-# Remember to replace with your actual agent instance
-
-agent = NewsAgent(news_source=["bbc.com"], categories=["politics"], summary_length=200, num_news=3)
-agent.generate_daily_briefing() 
-```
-
-## Limitations
-
-This project currently uses basic web scraping techniques for retrieving news articles. This method may not be reliable or scalable in the long term and raises ethical considerations.
-
-For optimal performance and ethical data access, it is highly recommended to use official APIs provided by news sources whenever available.
-
-## Contributing
-
-Contributions are welcome! 
-
-Please submit pull requests with well-defined changes and clear documentation. 
-
-## License
+1. Salvate il codice come `flag.asm`.
+2. Assemblate il codice usando il seguente comando:
+   ```bash
+   nasm -felf -o flag flag.asm
+   ```
+3. Eseguite il file eseguibile generato:
+   ```bash
+   ./flag 
+   ```
 
 
-This project is licensed under the MIT License.  
+## Descrizione
+
+* Il codice definisce le dimensioni della bandiera in larghezza ed in altezza. 
+* I caratteri utilizzati per rappresentare i colori della bandiera sono definiti.
+
+```assembly
+; Questo script assembly disegna la bandiera italiana in un terminale.
+; 
+; Definisci le dimensioni della bandiera
+WIDTH     EQU 30     ; Larghezza della bandiera in caratteri
+HEIGHT    EQU 20     ; Altezza della bandiera in caratteri
+GREENCHAR EQU ' '     ; Carattere per il verde
+WHCHAR EQU '*'    ; Carattere per il bianco
+REDCHAR EQU '#'    ; Carattere per il rosso
+
+; Disegna la bandiera 
+
+green_section:
+    mov esi, 0       ; Inizializza il registro ESI con 0
+    mov edi, 0       ; Inizializza il registro EDI con 0
+green_loop:   
+    mov al, greenchar
+    int 0x10        ; Stampa un carattere
+    inc edi
+    cmp edi,  WIDTH
+    jl green_loop    ; Continua il loop se EDI è minore di WIDTH
 
 
-```
+
+    ; Disegna la seconda fascia bianca
+white_section:
+    mov esi, 0       ; Inizializza il registro ESI con 0
+    mov edi, HEIGHT/3 ; Inizializza il registro EDI con l'altezza della terza fascia
+white_loop:   
+    mov al, whchar
+    int 0x10        ; Stampa un carattere
+    inc edi
+    cmp edi, HEIGHT/3
+    jl white_loop    ; Continua il loop se EDI è minore di HEIGHT/3
+
+    ; Disegna la terza fascia rossa
+red_section:
+
+    mov esi, 0       ; Inizializza il registro ESI con 0
+    mov edi, (HEIGHT/3)*2   ; Inizializza il registro EDI con l'altezza della terza fascia
+red_loop:
+    mov al, redchar
+    int 0x10        ; Stampa un carattere
+
+    inc edi
+    cmp edi, HEIGHT
+    jl red_loop    ; Continua il loop se EDI è minore di HEIGHT
