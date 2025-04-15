@@ -1,70 +1,70 @@
-```python
-import requests
-from bs4 import BeautifulSoup
-from crewai import Agent
+```assembly 
+; Questo script assembly disegna la bandiera italiana in un terminale.
+; 
+; Definisci le dimensioni della bandiera
+WIDTH     EQU 30     ; Larghezza della bandiera in caratteri
+HEIGHT    EQU 20     ; Altezza della bandiera in caratteri
+GREENCHAR EQU ' '     ; Carattere per il verde
+WHCHAR EQU '*'    ; Carattere per il bianco
+REDCHAR EQU '#'    ; Carattere per il rosso
 
-class NewsAgent(Agent):
-    def __init__(self, news_source=[], categories=[], summary_length=100, num_news=5):
-        super().__init__()
-        self.news_sources = news_source  # List of news sources (e.g., ["bbc.com", "nytimes.com"])
-        self.categories = categories  # List of news categories (e.g., ["politics", "technology"])
-        self.summary_length = summary_length
-        self.num_news = num_news
+; Disegna la bandiera 
 
-    def fetch_news(self):
-        news_articles = []
-        for source in self.news_sources:
-            # TODO: Implement logic to fetch news articles from each source based on categories
-            #  - This would likely involve using the appropriate APIs or web scraping techniques.
-            # Example using web scraping (not recommended for production):
-            url = f"https://{source}/top-stories"
-            response = requests.get(url)
-            response.raise_for_status()  # Raise an error for bad status codes
-
-            soup = BeautifulSoup(response.content, 'html.parser')
-            # Extract news titles and descriptions (customize based on the source's structure)
-            for article in soup.find_all('article'): 
-                title = article.find('h2').text.strip()
-                description = article.find('p').text.strip()[:self.summary_length] 
-                news_articles.append({"title": title, "description": description, "source": source})
-
-        return news_articles[:self.num_news]  # Return a limited number of articles
-
-    def generate_daily_briefing(self):
-        articles = self.fetch_news()
-        if articles:
-            print("----- Daily News Briefing -----")
-            for article in articles:
-                print(f"Source: {article['source']}")
-                print(f"Title: {article['title']}\nDescription: {article['description']}\n")
-            print("----- End of Briefing -----")
-        else:
-            print("No news articles found.")
+green_section:
+    mov esi, 0       ; Inizializza il registro ESI con 0
+    mov edi, 0       ; Inizializza il registro EDI con 0
+green_loop:   
+    mov al, greenchar
+    int 0x10        ; Stampa un carattere
+    inc edi
+    cmp edi,  WIDTH
+    jl green_loop    ; Continua il loop se EDI è minore di WIDTH
 
 
-# Example usage
-agent = NewsAgent(news_source=["bbc.com"], categories=["politics"], summary_length=200, num_news=3)
-agent.generate_daily_briefing() 
+
+    ; Disegna la seconda fascia bianca
+white_section:
+    mov esi, 0       ; Inizializza il registro ESI con 0
+    mov edi, HEIGHT/3 ; Inizializza il registro EDI con l'altezza della terza fascia
+white_loop:   
+    mov al, whchar
+    int 0x10        ; Stampa un carattere
+    inc edi
+    cmp edi, HEIGHT/3
+    jl white_loop    ; Continua il loop se EDI è minore di HEIGHT/3
+
+    ; Disegna la terza fascia rossa
+red_section:
+
+    mov esi, 0       ; Inizializza il registro ESI con 0
+    mov edi, (HEIGHT/3)*2   ; Inizializza il registro EDI con l'altezza della terza fascia
+red_loop:
+    mov al, redchar
+    int 0x10        ; Stampa un carattere
+
+    inc edi
+    cmp edi, HEIGHT
+    jl red_loop    ; Continua il loop se EDI è minore di HEIGHT
+
 ```
 
-**Explanation:**
-1. **Import Libraries:**
-   - `requests`: To fetch web content from news sources.
-   - `BeautifulSoup`: To parse HTML content and extract relevant information.
-   - `crewai`:  (Hypothetical) Assuming CrewAI provides their own Agent class for multi-agent capabilities.
 
-2. **`NewsAgent` Class:**
-   - **Constructor (`__init__`):** Initializes the agent with news sources, categories, summary length, and the number of news items to display.
-   - **`fetch_news()`:** This method would typically:
-     - Use APIs (if available) of news sources directly.
-     - Web scrape HTML content from news sources to extract articles based on chosen categories.
-     - Parse the HTML using `BeautifulSoup` to find title, description, and source information.
-   - **`generate_daily_briefing()`:**  
-     - Calls `fetch_news()` to retrieve news articles.
-     - Prints a formatted daily briefing with headlines, descriptions, and sources.
 
-**Next Steps:**
-- **API Integration:** Find and use official APIs for news sources (if available) instead of web scraping to ensure reliable and ethical data access.
-- **CrewAI Integration:** Adapt the code to work seamlessly with CrewAI's framework, leveraging its multi-agent features for collaboration or specialized tasks.
-- **Natural Language Processing (NLP):** Implement NLP techniques to enhance article summarization, keyword extraction, and potentially provide more insightful and personalized recommendations.
-- **User Interface:** Create a user-friendly interface (web-based, CLI, or integrate with existing platforms) for users to interact with the agent, choose categories, customize settings, and share news.
+  
+
+**Spiegazione:** 
+
+* Il codice assembly disegna la bandiera italiana con tre strisce verde, bianca e rossa. 
+* Definisce le dimensioni della bandiera in larghezza e altezza, ed inoltre un carattere per ogni colore. 
+ * Utilizza un ciclo `for` per iterare su ogni carattere della bandiera. 
+ * Per ogni iterazione, stampa il carattere corrispondente al colore e alla posizione.
+
+
+    
+**Considerazioni:**
+
+
+
+* Questo codice è pensato per essere eseguito su un sistema che supporti chiamate sistema del tipo INT 0x10 per la stampa dei caratteri.
+* Per adattarlo ad altre piattaforme, è necessario utilizzare le istruzioni appropriate per la stampa dei caratteri in quel sistema.
+* Per una visualizzazione grafica più avanzata, è necessario utilizzare un'interfaccia grafica e le librerie grafiche specifiche della piattaforma.
