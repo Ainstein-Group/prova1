@@ -1,125 +1,107 @@
 ```python
-import unittest
-import subprocess
+# Test per il codice principale
+import pytest
+from unittest.mock import patch, MagicMock
+from your_main_module import main  # Sostituire con il nome del modulo principale
 
-# Subroutine for executing ASM code and capturing output
-def execute_assembly(asm_code):
-    process = subprocess.Popen(
-        ["nasm", "-felf", "-o", "temp.o"],
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE
-    )
-    stdout, stderr = process.communicate(input=asm_code.encode())
-    return stdout
+class TestMain:
+    @patch('your_main_module.download_pages')  # Sostituire con il percorso corretto
+    @patch('your_main_module.extract_product_info')
+    @patch('your_main_module.compare_prices')
+    @patch('your_main_module.send_notification')
+    def test_main_funziona_correttamente(self, mock_send_notification, mock_compare_prices, mock_extract_product_info, mock_download_pages):
+        # Configurazione dei mock
+        mock_download_pages.return_value = ["html1", "html2"]
+        mock_extract_product_info.return_value = [{"prodotto": "prodotto1", "prezzo": 100}, {"prodotto": "prodotto2", "prezzo": 200}]
+        mock_compare_prices.return_value = [{"prodotto": "prodotto1", "prezzo": 90}]
+        mock_send_notification.return_value = None
 
-# Expected output for the Italian flag 
-EXPECTED_OUTPUT = """
- '*                    
-  '*                   
-  '*                   
-  '*                   
-  '*                   
-  '*                   
-  '*                   
-  '*                   
-  '*                   
-  '*                   
-  '*                   
-  '*                   
-  '*                   
-  '*                   
-  '*                   
-  '*                   
-  '*                   
-  '*                   
-  '*                    
-"""
+        # Esecuzione della funzione principale
+        result = main()
 
-class TestAssemblyFlag(unittest.TestCase):
+        # Verifica che la funzione non abbia restituito nulla (None)
+        assert result is None
 
-    def test_generate_flag(self):
-        asm_code = """
-        ; Questo script assembly disegna la bandiera italiana in un terminale.
-        ; 
-        ; Definisci le dimensioni della bandiera
-        WIDTH     EQU 30     ; Larghezza della bandiera in caratteri
-        HEIGHT    EQU 20     ; Altezza della bandiera in caratteri
-        GREENCHAR EQU ' '     ; Carattere per il verde
-        WHCHAR EQU '*'    ; Carattere per il bianco
-        REDCHAR EQU '#'    ; Carattere per il rosso
+        # Verifica che le funzioni siano state chiamate
+        mock_download_pages.assert_called_once()
+        mock_extract_product_info.assert_called_once()
+        mock_compare_prices.assert_called_once()
+        mock_send_notification.assert_called_once()
 
-        ; Disegna la bandiera 
+    @patch('your_main_module.download_pages')
+    def test_download_pages_ritorna_html(self, mock_download_pages):
+        # Configurazione del mock
+        mock_download_pages.return_value = ["<html>pagina1</html>", "<html>pagina2</html>"]
 
-        green_section:
-            mov esi, 0       ; Inizializza il registro ESI con 0
-            mov edi, 0       ; Inizializza il registro EDI con 0
-        green_loop:   
-            mov al, greenchar
-            int 0x10        ; Stampa un carattere
-            inc edi
-            cmp edi,  WIDTH
-            jl green_loop    ; Continua il loop se EDI è minore di WIDTH
+        # Esecuzione della funzione principale
+        html_pages = download_pages(["url1", "url2"])
 
+        # Verifica che vengano restituite le pagine HTML
+        assert len(html_pages) == 2
+        assert html_pages[0] == "<html>pagina1</html>"
+        assert html_pages[1] == "<html>pagina2</html>"
 
+    @patch('your_main_module.extract_product_info')
+    def test_extract_product_info_ritorna_info_prodotti(self, mock_extract_product_info):
+        # Configurazione del mock
+        mock_extract_product_info.return_value = [
+            {"prodotto": "prodotto1", "prezzo": 100},
+            {"prodotto": "prodotto2", "prezzo": 200}
+        ]
 
-            ; Disegna la seconda fascia bianca
-        white_section:
-            mov esi, 0       ; Inizializza il registro ESI con 0
-            mov edi, HEIGHT/3 ; Inizializza il registro EDI con l'altezza della terza fascia
-        white_loop:   
-            mov al, whchar
-            int 0x10        ; Stampa un carattere
-            inc edi
-            cmp edi, HEIGHT/3
-            jl white_loop    ; Continua il loop se EDI è minore di HEIGHT/3
+        # Esecuzione della funzione di estrazione
+        product_info = extract_product_info(["<html>pagina1</html>", "<html>pagina2</html>"])
 
-            ; Disegna la terza fascia rossa
-        red_section:
+        # Verifica che le informazioni siano state estratte correttamente
+        assert len(product_info) == 2
+        assert product_info[0]["prodotto"] == "prodotto1"
+        assert product_info[0]["prezzo"] == 100
+        assert product_info[1]["prodotto"] == "prodotto2"
+        assert product_info[1]["prezzo"] == 200
 
-            mov esi, 0       ; Inizializza il registro ESI con 0
-            mov edi, (HEIGHT/3)*2   ; Inizializza il registro EDI con l'altezza della terza fascia
-        red_loop:
-            mov al, redchar
-            int 0x10        ; Stampa un carattere
+    @patch('your_main_module.compare_prices')
+    def test_compare_prices_confronta_prezzi(self, mock_compare_prices):
+        # Configurazione del mock
+        mock_compare_prices.return_value = [
+            {"prodotto": "prodotto1", "prezzo": 90},
+            {"prodotto": "prodotto2", "prezzo": 180}
+        ]
 
-            inc edi
-            cmp edi, HEIGHT
-            jl red_loop    ; Continua il loop se EDI è minore di HEIGHT
+        # Esecuzione della funzione di confronto
+        decreased_prices = compare_prices(
+            [{"prodotto": "prodotto1", "prezzo": 100}, {"prodotto": "prodotto2", "prezzo": 200}],
+            "data/price_history.json"
+        )
 
-        """
+        # Verifica che vengano restituiti i prezzi diminuiti
+        assert len(decreased_prices) == 2
+        assert decreased_prices[0]["prodotto"] == "prodotto1"
+        assert decreased_prices[0]["prezzo"] == 90
+        assert decreased_prices[1]["prodotto"] == "prodotto2"
+        assert decreased_prices[1]["prezzo"] == 180
 
-        output = execute_assembly(asm_code)
-        self.assertEqual(output.decode().strip(), EXPECTED_OUTPUT.strip()) 
+    @patch('your_main_module.send_notification')
+    def test_send_notification_invia_notifica(self, mock_send_notification):
+        # Configurazione del mock
+        mock_send_notification.return_value = None
 
-if __name__ == '__main__':
-    unittest.main()
-``` 
+        # Esecuzione della funzione di notifica
+        send_notification([{"prodotto": "prodotto1", "prezzo": 90}])
 
- **Spiegazione del codice Python:**
+        # Verifica che la notifica sia stata inviata
+        mock_send_notification.assert_called_once()
 
-1. **`execute_assembly(asm_code)`**: 
-   - Questa funzione prende il codice assembly come input.
-   - Utilizza il comando `nasm` con le opzioni `-felf` e `-o` per assemblare il codice in un file eseguibile temporaneo.
-   - Esegue l'assembler e cattura la sua uscita utilizzando `subprocess.Popen`.
-   - Ritorna l'output dell'esecuzione del codice assemblato.
-   -
+    @patch('your_main_module.send_notification')
+    def test_send_notification_gestisce_eccezioni(self, mock_send_notification):
+        # Configurazione del mock per sollevare un'eccezione
+        mock_send_notification.side_effect = smtplib.SMTPException("Errore di invio")
 
-2. **`EXPECTED_OUTPUT`**: 
-   - Questa variabile contiene la rappresentazione testuale della bandiera italiana che dovrebbe essere generata dal codice assembly.
+        # Esecuzione della funzione di notifica
+        send_notification([{"prodotto": "prodotto1", "prezzo": 90}])
 
-3. **`TestAssemblyFlag`**: 
-   - Questa classe definisce il blocco di test per la tua esecuzione del codice assembly.
-   - **`test_generate_flag()`**: 
-     - Questo è il metodo di test che verifica se l'output del codice assembly è conforme alle aspettative. 
-     - Chiama `execute_assembly()` per creare la bandiera con il codice assembly. 
-     - Confronta l'output ottenuto con `EXPECTED_OUTPUT` usando `assertEqual()`.
+        # Verifica che venga gestita l'eccezione
+        assert mock_send_notification.call_count == 1
 
- 
-**Come utilizzare il test:**
-
-- Installa `nasm`: Questo strumento è necesario per assemblare il codice `.asm`.
-- Salva il codice Python in un file (ad esempio, `test_flag.py`).
-- Esegui il test da terminale: 
-   ```bash
-   python test_flag.py
-   ```
+if __name__ == "__main__":
+    pytest.main()
+```
