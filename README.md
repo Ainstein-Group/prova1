@@ -1,60 +1,57 @@
 ```markdown
-## Sistema Multi-Agente per il Monitoraggio dei Prezzi
+# Amazon Price Monitor
+==================
 
-Questo è un semplice sistema multi-agente scritto in Python per monitorare i prezzi di prodotti su siti web e inviare notifiche via email quando i prezzi scendono.
+This project monitors product prices on Amazon using a Python multi-agent system.
 
-### Come funziona
+## Overview
+The Amazon Price Monitor allows you to track the prices of specific products on Amazon and receive notifications when prices change. 
 
-Il sistema funziona in modo ciclico:
+## Project Structure
 
-1. **Scarica le pagine web:** Per ogni URL specificato, il sistema scarica la pagina web utilizzando la libreria `requests`.
-2. **Estrae i dati:** Dal contenuto HTML scaricato, il sistema estrae informazioni sul prodotto, come il nome, il prezzo e la disponibilità, utilizzando la libreria `BeautifulSoup`.
-3. **Confronta i prezzi:** Il sistema confronta il prezzo corrente con un record storico dei prezzi per lo stesso prodotto. 
-4. **Invia notifiche:** Se il prezzo corrente è inferiore al prezzo storico, il sistema invia un'email di avviso al destinatario specificato.
+- **`agents/`**: Contains the classes responsible for different aspects of the monitoring process. 
+    -  `download_agent.py`: Downloads the HTML content of product pages.
+    -  `extract_agent.py`: Extracts product information (name, price, availability) from the downloaded HTML.
+    -  `compare_agent.py`: Compares extracted prices with previously recorded data, identifying price changes.
+    -  `notify_agent.py`: Sends notifications (e.g., email) when price changes are detected.
+- **`tests/`**: Contains the unit tests for each agent.
+- **`data/`**: 
+    - `price_history.json`: Stores the previously recorded price history for each product.
+- **`main.py`**: Orchestrates the monitoring process by managing agents and interacting with the data.
+- **`README.md`**: This documentation file.
+- **`requirements.txt`**: Lists the project's dependencies.
 
-### Requisiti
+## Dependencies
 
-* Python 3.6+ 
-* Librerie Python: requests, beautifulsoup4, smtplib, email.mime.text
+To use this project, you need to have the following Python packages installed:
 
-### Installazione
+```bash
+pip install requests beautifulsoup4 pytest
+```
 
-1.  Scatena l'installazione delle dipendenza:
-    ``` bash
-    pip install requests beautifulsoup4
-    ```
+## Usage
 
-### Usi del codice
+1. **Configure price history:**
+   - Update the `data/price_history.json` file with the initial prices for the products you want to monitor.
+2. **Run the monitor:**
+   - execute `python main.py` to start the price monitoring process.
 
-1.  Modificare il file `system_multi_agente.py` con i propri URL dei prodotti e l'indirizzo email del destinatario.
-2.  Modificare il file `system_multi_agente.py` con il path al file di storage delle informazioni storiche dei prezzi.
+3. **(Optional) Customize notifications:**
+   -  Modify the `notify_agent.py` to configure email settings and notification methods.
 
-3.  Eseguire il script:
+## Features
 
-    ```bash
-    python system_multi_agente.py
-    ```
+- **Multi-agent architecture:** Different agents handle specific tasks like downloading, extracting data, comparing prices, and sending notifications.
+- **Price history tracking:**  Records price changes over time, allowing for price trend analysis.
+- **Flexible notification system:** Can be configured to send emails or any other type of notification when price thresholds are met.
 
-### Esempio
+## Contributing
 
-Nel file `system_multi_agente.py`,  questo è un esempio di come usare il codice:
+Contributions are welcome! Here's how you can help:
 
-```python
-urls = ["https://www.amazon.it/dp/B08N5WRWNW", "https://www.amazon.it/dp/B07XJPGFWL"]  
-history_file_path = 'history/price_history.json'
-sistema = SistemaMultiAgente(urls, history_file_path)
-sistema.main() 
-### 
-
-### Note
-
- * Le email vengono inviate utilizzando la configurazione di Gmail. È necessario abilitare l'accesso "Semplice" per il tuo account Gmail nelle impostazioni di sicurezza. 
-
-
- * Questo è un esempio di base. Puoi estenderlo con funzionalità aggiuntive, come il supporto per più siti web o la memorizzazione dei prezzi in un database.
-
-*   È necessario impostare le variabili d'ambiente `EMAIL_SENDER` e `EMAIL_PASSWORD` per inviare le email. 
+- **Report issues:** If you encounter any bugs or problems, please submit an issue report on GitHub.
+- **Suggest improvements:**  Share your ideas for new features or enhancements.
+- **Contribute code:**  Contribute code patches or new features.
 
 
-
-Contattaci per qualsiasi domanda o feedback.
+Remember to follow the project's coding style and guidelines.
