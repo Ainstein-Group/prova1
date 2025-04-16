@@ -1,33 +1,77 @@
-# Ethical AI Assistant
+```markdown
+# Calcola l'area di un triangolo
 
-This repository houses the code and documentation for an AI assistant designed to be helpful and ethical.
+Questo codice fornisce una funzione per calcolare l'area di un triangolo e un test unitario per verificare il suo funzionamento.
 
-##  About This Project
+## Funzione `calcola_area_triangolo`
 
-This project aims to develop an AI assistant that prioritizes ethical considerations in all its interactions. The assistant is programmed to:
+```python
+def calcola_area_triangolo(base, altezza):
+  """
+  Questa funzione calcola l'area di un triangolo.
 
-* **Avoid harmful responses:** It will not generate code for malicious purposes, such as creating viruses or engaging in cybercrime.
-* **Promote responsible use of AI:** It encourages users to explore AI technology ethically and responsibly.
-* **Provide helpful and informative answers:** It strives to offer accurate and useful information within its ethical boundaries.
+  Args:
+    base: La lunghezza della base del triangolo.
+    altezza: L'altezza del triangolo rispetto alla base.
 
-##  Code Explanation
+  Returns:
+    L'area del triangolo.
+  """
+  area = 0.5 * base * altezza
+  return area
+```
 
-The code within this repository implements the core functionality of the ethical AI assistant. It includes:
+La funzione `calcola_area_triangolo` accetta due argomenti: `base` (la lunghezza della base del triangolo) e `altezza` (l'altezza del triangolo rispetto alla base). 
 
-*   **Natural Language Processing (NLP) Model:** This component allows the assistant to understand and interpret user input.
-*   **Knowledge Base:**  A structured repository of information that the assistant uses to generate responses.
-*   **Ethical Decision-Making Framework:** This module guides the assistant's responses, ensuring they align with ethical principles. 
+Calcola l'area del triangolo usando la formula: `area = 0.5 * base * altezza`.
 
-##  Contributing
+## Esempi di utilizzo
 
-We encourage contributions to this project to further its mission of ethical AI development. Contributions can include:
+Il codice include due esempi di utilizzo della funzione:
 
-*   **Improving the NLP model:**
+```python
+base1 = 10
+altezza1 = 5
+area1 = calcola_area_triangolo(base1, altezza1)
+print(f"L'area del triangolo con base {base1} e altezza {altezza1} è: {area1}")
 
-Enhancements to language understanding and response generation.
-*   **Expanding the knowledge base:** Adding new information and updating existing data.
-*   **Refining the ethical decision-making framework:** Identifying and addressing potential biases or areas for improvement.
+base2 = 7
+altezza2 = 12
+area2 = calcola_area_triangolo(base2, altezza2)
+print(f"L'area del triangolo con base {base2} e altezza {altezza2} è: {area2}")
+```
 
-##  Disclaimer
+Questi esempi calcolano l'area di due triangoli con parametri specifici e stampano il risultato a schermo.
 
-The developers of this project are not responsible for any misuse of the code or the AI assistant's outputs. The assistant is intended for educational and research purposes only. Using it for illegal or harmful activities is strictly prohibited.
+## Test unitari
+
+Il codice include un test unitario per verificare il corretto funzionamento della funzione `calcola_area_triangolo`:
+
+```python
+import unittest
+
+class TestCalcolaAreaTriangolo(unittest.TestCase):
+
+    def test_base_e_altezza_positivi(self):
+        self.assertEqual(calcola_area_triangolo(10, 5), 25)
+
+    def test_base_e_altezza_zero(self):
+        self.assertEqual(calcola_area_triangolo(0, 5), 0)
+
+    def test_base_negativo(self):
+        with self.assertRaises(ValueError):
+            calcola_area_triangolo(-10, 5)
+
+    def test_altezza_negativa(self):
+        with self.assertRaises(ValueError):
+            calcola_area_triangolo(10, -5)
+
+if __name__ == '__main__':
+    unittest.main()  
+```
+
+Il test utilizza la libreria `unittest` per verificare che la funzione restituisca il risultato corretto in diversi scenari, tra cui:
+
+* Base e altezza positivi
+* Base o altezza zero
+* Base o altezza negativo (generando un ValueError)
