@@ -1,54 +1,62 @@
 ```markdown
-# Price Tracker
+# Calcola l'area di un cerchio
 
-## Descrizione
+Questo progetto contiene un codice python che implementa la funzione `calculate_area` per calcolare l'area di un cerchio dato il suo raggio. Il codice include anche un modulo di test unitaria per testare la funzione `calculate_area`.
 
-Questo progetto fornisce un agente di download, un agente di estrazione, un agente di confronto e un agente di notifica per monitorare i prezzi dei prodotti in diversi siti web.
+## `calculate_area`
 
-## Setup
+La funzione `calculate_area` prende un valore float `radius` come input e restituisce l'area del cerchio corrispondente. Se il raggio è negativo, la funzione restituisce 0.
 
-1. **Ambiente virtuale:**
-   - Crea un ambiente virtuale: `python -m venv venv`
-   - Attiva l'ambiente: `source venv/bin/activate`
-   - Installa le dipendenze: `pip install -r requirements.txt`
-
-2. **Configurazione:**
-   - Modifica il file `price_history.json` con le informazioni sui prodotti da monitorare e i loro prezzi iniziali.
-
-   ```json
-   {
-     "prodotto1": {"prezzo": 100, "data": "2023-10-01"},
-     "prodotto2": {"prezzo": 200, "data": "2023-10-01"}
-   }
-   ```
-
-   - Inserisci le informazioni di configurazione per le notifiche nel file `main.py`: `sender_email`, `receiver_email`, `smtp_server` e `smtp_port`.
-
-3. **Dati sulle pagine:**
-   -  Nell'elenco `urls` nella funzione `main()` definisci gli URL dei prodotti da monitorare.
-
-
-## Funzionamento
-
-Il programma funziona secondo questi passaggi:
-
-1. **Download delle pagine HTML:** Utilizza l'agente di download per scaricare le pagine HTML dei prodotti desiderati.
-2. **Estrazione delle informazioni dei prodotti:** Utilizza l'agente di estrazione per estrarre le informazioni pertinenti dai prodotti dalle pagine HTML scaricate (ad esempio, nome prodotto, prezzo).
-3. **Confronto dei prezzi:** Confronta i prezzi estratti con quelli archiviati in `price_history.json`.
-4. **Invio delle notifiche:** Invia notifiche via email agli utenti registrati se un prodotto raggiunge un prezzo inferiore a quello stabilito o si verificano altri eventi specificati (ad esempio, offerta speciale).
-
-## Utilizzo
-
-1. Esegui il codice utilizzando il comando `python main.py`.
-2. Il programma scarica le pagine HTML, estrae le informazioni dei prodotti, confronta i prezzi e invia notifiche se necessario.
-
-## Estensioni future
-
-- Aggiungere la capacità di monitorare più parametri dei prodotti (ad esempio, disponibilità).
-- Implementazione di notifiche su diverse piattaforme (ad esempio, SMS, webhook).
-- Incorpore la capacità di importare listini prezzi automatici.
-
-
-
-
+```python
+def calculate_area(radius):
+    if radius < 0:
+        return 0
+    return 3.14 * radius ** 2
 ```
+
+## Test unitaria
+
+Il modulo di test unitario implementa quattro test cases per valutare la funzione `calculate_area`:
+
+- Test con raggio positivo
+- Test con raggio zero
+- Test con raggio negativo
+- Test con raggio floating-point
+
+Ogni test utilizza `self.assertEqual` per verificare che il valore restituito dalla funzione corrisponda all'area attesa.
+
+```python
+import unittest
+
+class TestCalculateArea(unittest.TestCase):
+    
+    def test_positive_radius(self):
+        radius = 5
+        expected_area = 3.14 * (radius ** 2)
+        self.assertEqual(calculate_area(radius), expected_area)
+    
+    def test_zero_radius(self):
+        radius = 0
+        expected_area = 0
+        self.assertEqual(calculate_area(radius), expected_area)
+    
+    def test_negative_radius(self):
+        radius = -3
+        expected_area = 0
+        self.assertEqual(calculate_area(radius), expected_area)
+    
+    def test_float_radius(self):
+        radius = 2.5
+        expected_area = 3.14 * (radius ** 2)
+        self.assertEqual(calculate_area(radius), expected_area)
+```
+
+## Come eseguire i test
+
+Per eseguire i test, salva il codice in un file python (ad esempio `calculate_area.py`) ed esegui il seguente comando da terminale:
+
+```bash
+python calculate_area.py
+```
+
+Il modulo `unittest` eseguirà i test e mostrerà i risultati.
