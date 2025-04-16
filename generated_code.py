@@ -1,155 +1,144 @@
-```python
-# AmazonPriceMonitor/README.md
+```
+# SISTEMA MULTI-AGENT PER IL MONITORAGGIO DEI PREZZI SU AMAZON
 
-Amazon Price Monitor
-==================
+Questo sistema è composto da quattro agenti separati che lavorano insieme per monitorare i prezzi di vari prodotti su Amazon. Ogni agente è modulare e può essere testato separatamente. Il sistema è documentato in modo che sia facile da utilizzare e integrare.
 
-This project monitors product prices on Amazon using a Python multi-agent system.
-
-### Dependencies
-
-Make sure to have the following dependencies installed:
-
-- requests
-- beautifulsoup4
-- pytest
-
-You can install them using pip:
+## Struttura del Progetto
 
 ```
-pip install requests beautifulsoup4 pytest
+amazon_price_monitor/
+│
+├── agents/
+│   ├── downloader.py
+│   ├── extractor.py
+│   ├── price_comparator.py
+│   └── notification_agent.py
+│
+├── tests/
+│   ├── test_downloader.py
+│   ├── test_extractor.py
+│   ├── test_price_comparator.py
+│   └── test_notification_agent.py
+│
+├── data/
+│   └── price_history.json
+│
+├── README.md
+├── requirements.txt
+└── main.py
 ```
 
-### Project Structure
+## Requisiti
 
-- `agents/`: Contains the agent modules.
-- `tests/`: Contains the test files written using pytest.
-- `data/`: Contains the price history data.
-- `main.py`: The main script to run the monitoring.
-- `README.md`: This file.
-- `requirements.txt`: The list of dependencies.
+- Python 3.7+
+- BeautifulSoup
+- Requests
+- PyTest
+- Smtplib (per inviare email)
 
-### Usage
+## Installazione
 
-1. Configure the `data/price_history.json` file with the price history data.
-2. Run `python main.py` to start the monitoring.
+1. Clona il repository:
+    ```bash
+    git clone https://github.com/yourusername/amazon_price_monitor.git
+    cd amazon_price_monitor
+    ```
+2. Installa le dipendenze:
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-### Tests
+## Documentazione
 
-To run the tests, use the command:
+### Downloader
 
-```
-pytest
-```
-
-# agents/download_agent.py
 ```python
 import requests
-
-def download_html(url):
-    """Downloads the HTML content of a webpage.
-
-    Args:
-        url (str): The URL of the webpage.
-
-    Returns:
-        str: The HTML content of the webpage or None if the download fails.
-    """
-    try:
-        response = requests.get(url)
-        response.raise_for_status()
-        return response.text
-    except requests.exceptions.RequestException as e:
-        print(f"Error downloading the webpage: {e}")
-        return None
+def download_page(url):
+    response = requests.get(url)
+    response.raise_for_status()
+    return response.text
 ```
 
-# agents/extract_agent.py
+### Extractor
+
 ```python
 from bs4 import BeautifulSoup
-
-def extract_product_info(html):
-    """Extracts product name, price, and availability from an HTML page.
-
-    Args:
-        html (str): The HTML content of the page.
-
-    Returns:
-        dict: A dictionary with product name, price, and availability.
-    """
-    soup = BeautifulSoup(html, 'html.parser')
-    name = soup.find('span', {'id': 'productTitle'}).get_text(strip=True)
-    price = soup.find('span', {'class': 'a-price-whole'}).get_text(strip=True)
-    availability = soup.find('div', {'id': 'availability'}).get_text(strip=True)
-    return {
-        'name': name,
-        'price': price,
-        'availability': availability
-    }
+def extract_info(html_content):
+    soup = BeautifulSoup(html_content, 'html.parser')
+    name = soup.find('span', id='productTitle').get_text(strip=True)
+    price = soup.find('span', class_='a-price-whole').get_text(strip=True)
+    availability = soup.find('span', class_='a-available').get_text(strip=True)
+    return {'name': name, 'price': price, 'availability': availability}
 ```
 
-# agents/compare_agent.py
+### Price Comparator
+
 ```python
 import json
-
-def load_price_history(filepath):
-    """Loads the price history data from a JSON file.
-
-    Args:
-        filepath (str): The path to the JSON file.
-
-    Returns:
-        dict: The price history data dictionary.
-    """
-    with open(filepath, 'r') as file:
-        return json.load(file)
-
-def save_price_history(filepath, history):
-    """Saves the price history data to a JSON file.
-
-    Args:
-        filepath (str): The path to the JSON file.
-        history (dict): The price history data dictionary.
-    """
-    with open(filepath, 'w') as file:
-        json.dump(history, file)
+def compare_prices(current_price, history_file):
+    with open(history_file, 'r') as f:
+        history = json.load(f)
+    current_price_float = float(current_price.replace(',', ''))
+    if 'prices' not in history:
+        return False
+    last_price = history['prices'][-1]
+    return current_price_float < last_price
 ```
 
-# agents/notify_agent.py
+### Notification Agent
+
 ```python
 import smtplib
 from email.mime.text import MIMEText
-
-def send_email(subject, body, to_email, from_email, smtp_server, smtp_port, smtp_user, smtp_password):
-    """Sends an email using SMTP.
-
-    Args:
-        subject (str): The email subject.
-        body (str): The email body.
-        to_email (str): The recipient email address.
-        from_email (str): The sender email address.
-        smtp_server (str): The SMTP server.
-        smtp_port (int): The SMTP port.
-        smtp_user (str): The SMTP username.
-        smtp_password (str): The SMTP password.
-    """
-    msg = MIMEText(body)
-    msg['Subject'] = subject
+from email.mime.multipart import MIMEMultipart
+def send_email(subject, body, to_email):
+    from_email = "tuoindirizzoemail@example.com"
+    from_password = "tuapass"
+    msg = MIMEMultipart()
     msg['From'] = from_email
     msg['To'] = to_email
-
-    with smtplib.SMTP(smtp_server, smtp_port) as server:
-        server.login(smtp_user, smtp_password)
-        server.sendmail(from_email, to_email, msg.as_string())
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    server.starttls()
+    server.login(from_email, from_password)
+    server.sendmail(from_email, to_email, msg.as_string())
+    server.quit()
 ```
 
-# tests/test_download_agent.py
+### Main
+
 ```python
-import pytest
-from agents.download_agent import download_html
-
-def test_download_html():
-    assert download_html("http://example.com") is not None
+from downloader import download_page
+from extractor import extract_info
+from price_comparator import compare_prices
+from notification_agent import send_email
+def monitor_products(urls, history_file, to_email):
+    for url in urls:
+        html_content = download_page(url)
+        product_info = extract_info(html_content)
+        current_price = product_info['price']
+        if compare_prices(current_price, history_file):
+            subject = f"Prezzo diminuito per {product_info['name']}"
+            body = f"Il prezzo del prodotto {product_info['name']} è sceso a {current_price}."
+            send_email(subject, body, to_email)
+if __name__ == "__main__":
+    product_urls = ['URL1', 'URL2', 'URL3']
+    history_file = 'data/price_history.json'
+    to_email = 'destinatario@example.com'
+    monitor_products(product_urls, history_file, to_email)
 ```
 
-This is the final answer. It includes all the required code and documentation for the Amazon Price Monitor system.
+## Testing
+
+Ogni agente è testabile separatamente usando `pytest`. Esegui i test con il seguente comando:
+
+```bash
+pytest
+```
+
+## Note
+
+- Assicurati di configurare le credenziali SMTP corrette per inviare email.
+- Questo è un esempio di base e potrebbe richiedere ulteriori configurazioni per gestire i requisiti aggiuntivi di scraping e gestione degli errori.
