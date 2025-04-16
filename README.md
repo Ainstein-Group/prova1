@@ -1,74 +1,54 @@
 ```markdown
-#  Bandiera Italiana Assembly
-
-Questo script assembly disegna la bandiera italiana in un terminale.
-
-## Requisiti
-
-*  Un assembler compatibile con NASM
-
-##  Utilizzo
-
-1. Salvate il codice come `flag.asm`.
-2. Assemblate il codice usando il seguente comando:
-   ```bash
-   nasm -felf -o flag flag.asm
-   ```
-3. Eseguite il file eseguibile generato:
-   ```bash
-   ./flag 
-   ```
-
+# Price Tracker
 
 ## Descrizione
 
-* Il codice definisce le dimensioni della bandiera in larghezza ed in altezza. 
-* I caratteri utilizzati per rappresentare i colori della bandiera sono definiti.
+Questo progetto fornisce un agente di download, un agente di estrazione, un agente di confronto e un agente di notifica per monitorare i prezzi dei prodotti in diversi siti web.
 
-```assembly
-; Questo script assembly disegna la bandiera italiana in un terminale.
-; 
-; Definisci le dimensioni della bandiera
-WIDTH     EQU 30     ; Larghezza della bandiera in caratteri
-HEIGHT    EQU 20     ; Altezza della bandiera in caratteri
-GREENCHAR EQU ' '     ; Carattere per il verde
-WHCHAR EQU '*'    ; Carattere per il bianco
-REDCHAR EQU '#'    ; Carattere per il rosso
+## Setup
 
-; Disegna la bandiera 
+1. **Ambiente virtuale:**
+   - Crea un ambiente virtuale: `python -m venv venv`
+   - Attiva l'ambiente: `source venv/bin/activate`
+   - Installa le dipendenze: `pip install -r requirements.txt`
 
-green_section:
-    mov esi, 0       ; Inizializza il registro ESI con 0
-    mov edi, 0       ; Inizializza il registro EDI con 0
-green_loop:   
-    mov al, greenchar
-    int 0x10        ; Stampa un carattere
-    inc edi
-    cmp edi,  WIDTH
-    jl green_loop    ; Continua il loop se EDI è minore di WIDTH
+2. **Configurazione:**
+   - Modifica il file `price_history.json` con le informazioni sui prodotti da monitorare e i loro prezzi iniziali.
 
+   ```json
+   {
+     "prodotto1": {"prezzo": 100, "data": "2023-10-01"},
+     "prodotto2": {"prezzo": 200, "data": "2023-10-01"}
+   }
+   ```
+
+   - Inserisci le informazioni di configurazione per le notifiche nel file `main.py`: `sender_email`, `receiver_email`, `smtp_server` e `smtp_port`.
+
+3. **Dati sulle pagine:**
+   -  Nell'elenco `urls` nella funzione `main()` definisci gli URL dei prodotti da monitorare.
 
 
-    ; Disegna la seconda fascia bianca
-white_section:
-    mov esi, 0       ; Inizializza il registro ESI con 0
-    mov edi, HEIGHT/3 ; Inizializza il registro EDI con l'altezza della terza fascia
-white_loop:   
-    mov al, whchar
-    int 0x10        ; Stampa un carattere
-    inc edi
-    cmp edi, HEIGHT/3
-    jl white_loop    ; Continua il loop se EDI è minore di HEIGHT/3
+## Funzionamento
 
-    ; Disegna la terza fascia rossa
-red_section:
+Il programma funziona secondo questi passaggi:
 
-    mov esi, 0       ; Inizializza il registro ESI con 0
-    mov edi, (HEIGHT/3)*2   ; Inizializza il registro EDI con l'altezza della terza fascia
-red_loop:
-    mov al, redchar
-    int 0x10        ; Stampa un carattere
+1. **Download delle pagine HTML:** Utilizza l'agente di download per scaricare le pagine HTML dei prodotti desiderati.
+2. **Estrazione delle informazioni dei prodotti:** Utilizza l'agente di estrazione per estrarre le informazioni pertinenti dai prodotti dalle pagine HTML scaricate (ad esempio, nome prodotto, prezzo).
+3. **Confronto dei prezzi:** Confronta i prezzi estratti con quelli archiviati in `price_history.json`.
+4. **Invio delle notifiche:** Invia notifiche via email agli utenti registrati se un prodotto raggiunge un prezzo inferiore a quello stabilito o si verificano altri eventi specificati (ad esempio, offerta speciale).
 
-    inc edi
-    cmp edi, HEIGHT
-    jl red_loop    ; Continua il loop se EDI è minore di HEIGHT
+## Utilizzo
+
+1. Esegui il codice utilizzando il comando `python main.py`.
+2. Il programma scarica le pagine HTML, estrae le informazioni dei prodotti, confronta i prezzi e invia notifiche se necessario.
+
+## Estensioni future
+
+- Aggiungere la capacità di monitorare più parametri dei prodotti (ad esempio, disponibilità).
+- Implementazione di notifiche su diverse piattaforme (ad esempio, SMS, webhook).
+- Incorpore la capacità di importare listini prezzi automatici.
+
+
+
+
+```
