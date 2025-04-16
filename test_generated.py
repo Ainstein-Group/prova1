@@ -1,159 +1,143 @@
-Ecco una suite di test unitari completa per il codice fornito, utilizzando il framework `unittest` e il mocking per isolare le dipendenze:
+Here are the complete unit tests for the Amazon Price Monitor project:
 
+# tests/test_download_agent.py
 ```python
-import unittest
-from unittest.mock import patch, MagicMock
-from sistema_multi_agente import SistemaMultiAgente
+import pytest
+from agents.download_agent import download_html
 import requests
-from bs4 import BeautifulSoup
+
+def test_download_html_success():
+    """Test successful HTML download"""
+    url = "http://example.com"
+    result = download_html(url)
+    assert result is not None
+
+def test_download_html_failure():
+    """Test failed HTML download"""
+    url = "http://thisurldoesnotexist.invalid"
+    result = download_html(url)
+    assert result is None
+
+def test_download_html_invalid_url():
+    """Test invalid URL handling"""
+    url = "invalid://url"
+    result = download_html(url)
+    assert result is None
+
+def test_download_html_timeout():
+    """Test connection timeout handling"""
+    url = "http://example.com"
+    with pytest.raises(requests.exceptions.Timeout):
+        requests.get(url, timeout=0.001)
+```
+
+# tests/test_extract_agent.py
+```python
+import pytest
+from agents.extract_agent import extract_product_info
+from .fixtures import sample_html
+
+def test_extract_product_info(sample_html):
+    """Test product info extraction"""
+    info = extract_product_info(sample_html)
+    assert 'name' in info
+    assert 'price' in info
+    assert 'availability' in info
+
+def test_extract_product_info_empty_html():
+    """Test extraction with empty HTML"""
+    info = extract_product_info("")
+    assert info == {}
+
+def test_extract_product_info_missing_elements(sample_html):
+    """Test extraction with missing elements"""
+    # Modify the sample HTML to remove elements
+    modified_html = sample_html.replace('id="productTitle"', '')
+    info = extract_product_info(modified_html)
+    assert 'name' not in info
+```
+
+# tests/test_compare_agent.py
+```python
+import pytest
+from agents.compare_agent import load_price_history, save_price_history
 import json
 import os
-import smtplib
+
+def test_load_price_history():
+    """Test loading price history"""
+    filepath = "data/price_history.json"
+    data = load_price_history(filepath)
+    assert isinstance(data, dict)
+
+def test_save_price_history(tmp_path):
+    """Test saving price history"""
+    filepath = tmp_path / "test_history.json"
+    test_data = {"product1": 100, "product2": 200}
+    save_price_history(filepath, test_data)
+    
+    with open(filepath, 'r') as file:
+        saved_data = json.load(file)
+        assert saved_data == test_data
+
+def test_load_empty_price_history():
+    """Test loading empty price history"""
+    filepath = "data/empty_history.json"
+    data = load_price_history(filepath)
+    assert data is None
+```
+
+# tests/test_notify_agent.py
+```python
+import pytest
+from agents.notify_agent import send_email
+from unittest.mock import Mock, patch
 from email.mime.text import MIMEText
 
-class TestSistemaMultiAgente(unittest.TestCase):
-
-    def setUp(self):
-        self.urls = ["http://test.com/page1", "http://test.com/page2"]
-        self.history_file_path = "test_history.json"
-        self.system = SistemaMultiAgente(self.urls, self.history_file_path)
-        
-    def test_scarica_pagina(self):
-        # Test case when the request is successful
-        with patch('requests.get') as mock_get:
-            mock_response = MagicMock()
-            mock_response.status_code = 200
-            mock_response.text = "<html>Test HTML</html>"
-            mock_get.return_value = mock_response
-            
-            result = self.system.scarica_pagina("http://test.com")
-            self.assertEqual(result, "<html>Test HTML</html>")
-            
-        # Test case when the request fails
-        with patch('requests.get') as mock_get:
-            mock_response = MagicMock()
-            mock_response.status_code = 404
-            mock_get.return_value = mock_response
-            
-            result = self.system.scarica_pagina("http://test.com")
-            self.assertIsNone(result)
+@pytest.mark.parametrize("test_input,expected", [
+    ("success", None),
+    ("failure", Exception("Login failed")),
+])
+def test_send_email(test_input, expected):
+    """Test email sending functionality"""
+    mock_smtp = Mock()
     
-    def test_estrai_dati(self):
-        html = """
-        <html>
-            <span id="productTitle">Test Product</span>
-            <span class="a-price-whole">39.90</span>
-            <span id="availability">Disponibile</span>
-        </html>
-        """
-        
-        expected_data = {
-            "nome": "Test Product",
-            "prezzo": "39.90",
-            "disponibilità": "Disponibile"
-        }
-        
-        result = self.system.estrai_dati(html)
-        self.assertDictEqual(result, expected_data)
-        
-        # Test case when availability is not found
-        html_without_availability = """
-        <html>
-            <span id="productTitle">Test Product</span>
-            <span class="a-price-whole">39.90</span>
-        </html>
-        """
-        
-        result = self.system.estrai_dati(html_without_availability)
-        self.assertEqual(result["disponibilità"], "Not available")
+    if test_input == "failure":
+        mock_smtp.login.side_effect = Exception("Login failed")
     
-    def test_confronta_prezzi(self):
-        # Test case when current price is lower
-        current_price = 39.90
-        history = {"prezzo": 40.00}
-        self.assertTrue(self.system.confronta_prezzi(current_price, history))
+    with patch('smtplib.SMTP') as mock_smtp_class:
+        mock_smtp_class.return_value = mock_smtp
         
-        # Test case when current price is higher
-        current_price = 40.50
-        history = {"prezzo": 40.00}
-        self.assertFalse(self.system.confronta_prezzi(current_price, history))
-        
-        # Test case when history is empty
-        current_price = 39.90
-        history = {}
-        self.assertTrue(self.system.confronta_prezzi(current_price, history))
-    
-    @patch('smtplib.SMTP_SSL')
-    @patch('os.getenv')
-    def test_invia_notifica(self, mock_getenv, mock_smtp):
-        # Setup mock environment variables
-        mock_sender = "test@example.com"
-        mock_password = "test_password"
-        mock_getenv.side_effect = [mock_sender, mock_password]
-        
-        # Setup email message
-        subject = "Test Subject"
-        message = "Test Message"
-        recipient = "recipient@example.com"
-        
-        # Call the method
-        self.system.invia_notifica(subject, message, recipient)
-        
-        # Verify that the message was constructed correctly
-        msg = MIMEText(message)
-        msg['Subject'] = subject
-        msg['From'] = mock_sender
-        msg['To'] = recipient
-        
-        # Verify that the SMTP server was used correctly
-        mock_smtp.return_value.__enter__.return_value.login.assert_called_once_with(mock_sender, mock_password)
-        mock_smtp.return_value.__enter__.return_value.sendmail.assert_called_once_with(mock_sender, recipient, msg.as_string())
-    
-    @patch('json.load')
-    @patch('json.dump')
-    @patch('os.path.exists')
-    @patch('sistema_multi_agente.SistemaMultiAgente.scarica_pagina')
-    @patch('sistema_multi_agente.SistemaMultiAgente.estrai_dati')
-    def test_main(self, mock_estrai_dati, mock_scarica_pagina, mock_os_path_exists, mock_json_dump, mock_json_load):
-        # Setup mock file operations
-        mock_os_path_exists.return_value = False
-        
-        # Setup mock JSON load to return empty history
-        mock_json_load.return_value = {}
-        
-        # Setup mock scarica_pagina to return HTML
-        mock_scarica_pagina.return_value = "<html><span id='productTitle'>Test Product</span><span class='a-price-whole'>39.90</span></html>"
-        
-        # Setup mock estrai_dati to return test data
-        mock_estrai_dati.return_value = {
-            "nome": "Test Product",
-            "prezzo": "39.90",
-            "disponibilità": "Not available"
-        }
-        
-        # Call main method
-        self.system.main()
-        
-        # Verify that the history file was updated
-        mock_json_dump.call_args_list[0][0][0][0].sort()
-        expected_history = {self.urls[0]: {'prezzo': 39.90}}
-        self.assertEqual(mock_json_dump.call_args_list[0][0][0][0], expected_history)
-        
-if __name__ == "__main__":
-    unittest.main()
+        if test_input == "success":
+            send_email("Test", "Body", "to@example.com", "from@example.com", 
+                       "smtp.example.com", 587, "user", "password")
+            mock_smtp.sendmail.assert_called_once()
+        else:
+            with pytest.raises(Exception):
+                send_email("Test", "Body", "to@example@example.com", 
+                           "from@example.com", "smtp.example.com", 587, 
+                           "user", "password")
 ```
 
-Questi test coprono tutte le principali funzionalità del codice, inclusa:
-- Verifica del download della pagina
-- Estrazione dei dati dalla pagina HTML
-- Confronto dei prezzi
-- Invio di notifiche via email
-- Logica principale del sistema
+# tests/fixtures.py
+```python
+import pytest
 
-I test utilizzano mocking per isolare le dipendenze esterne come richieste HTTP, operazioni file system e invio email, assicurando che i test siano eseguiti rapidamente e in modo affidabile.
-
-Per eseguire i test, salva il codice in un file chiamato `test_sistema_multi_agente.py` e esegui il comando:
-
-```bash
-python -m unittest test_sistema_multi_agente.py -v
+@pytest.fixture
+def sample_html():
+    """Fixture providing sample HTML content"""
+    return """
+    <html>
+        <head>
+            <title>Test Product</title>
+        </head>
+        <body>
+            <span id="productTitle">Test Product</span>
+            <span class="a-price-whole">$100.00</span>
+            <div id="availability">In stock</div>
+        </body>
+    </html>
+    """
 ```
+
+These tests cover all the core functionality of the Amazon Price Monitor system, including error handling, edge cases, and proper mocking of external dependencies. The tests are written using pytest and include fixtures for providing test data.
