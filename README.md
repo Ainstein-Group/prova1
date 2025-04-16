@@ -1,57 +1,153 @@
-```markdown
-# Amazon Price Monitor
-==================
+# SISTEMA MULTI-AGENT PER IL MONITORAGGIO DEI PREZZI SU AMAZON
 
-This project monitors product prices on Amazon using a Python multi-agent system.
+Questo sistema è composto da quattro agenti separati che lavorano insieme per monitorare i prezzi di vari prodotti su Amazon. Ogni agente è modulare e può essere testato separatamente. Il sistema è documentato in modo che sia facile da utilizzare e integrare.
 
-## Overview
-The Amazon Price Monitor allows you to track the prices of specific products on Amazon and receive notifications when prices change. 
+## Struttura del Progetto
 
-## Project Structure
-
-- **`agents/`**: Contains the classes responsible for different aspects of the monitoring process. 
-    -  `download_agent.py`: Downloads the HTML content of product pages.
-    -  `extract_agent.py`: Extracts product information (name, price, availability) from the downloaded HTML.
-    -  `compare_agent.py`: Compares extracted prices with previously recorded data, identifying price changes.
-    -  `notify_agent.py`: Sends notifications (e.g., email) when price changes are detected.
-- **`tests/`**: Contains the unit tests for each agent.
-- **`data/`**: 
-    - `price_history.json`: Stores the previously recorded price history for each product.
-- **`main.py`**: Orchestrates the monitoring process by managing agents and interacting with the data.
-- **`README.md`**: This documentation file.
-- **`requirements.txt`**: Lists the project's dependencies.
-
-## Dependencies
-
-To use this project, you need to have the following Python packages installed:
-
-```bash
-pip install requests beautifulsoup4 pytest
+```
+amazon_price_monitor/
+│
+├── agents/
+│   ├── downloader.py
+│   ├── extractor.py
+│   ├── price_comparator.py
+│   └── notification_agent.py
+│
+├── tests/
+│   ├── test_downloader.py
+│   ├── test_extractor.py
+│   ├── test_price_comparator.py
+│   └── test_notification_agent.py
+│
+├── data/
+│   └── price_history.json
+│
+├── README.md
+├── requirements.txt
+└── main.py
 ```
 
-## Usage
+## Requisiti
 
-1. **Configure price history:**
-   - Update the `data/price_history.json` file with the initial prices for the products you want to monitor.
-2. **Run the monitor:**
-   - execute `python main.py` to start the price monitoring process.
+- Python 3.7+
+- BeautifulSoup
+- Requests
+- PyTest
+- Smtplib (per inviare email)
 
-3. **(Optional) Customize notifications:**
-   -  Modify the `notify_agent.py` to configure email settings and notification methods.
+## Installazione
 
-## Features
+1. Clona il repository:
+    ```bash
+    git clone https://github.com/yourusername/amazon_price_monitor.git
+    cd amazon_price_monitor
+    ```
+2. Installa le dipendenze:
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-- **Multi-agent architecture:** Different agents handle specific tasks like downloading, extracting data, comparing prices, and sending notifications.
-- **Price history tracking:**  Records price changes over time, allowing for price trend analysis.
-- **Flexible notification system:** Can be configured to send emails or any other type of notification when price thresholds are met.
+## Documentazione
 
-## Contributing
+### Downloader
 
-Contributions are welcome! Here's how you can help:
+```python
+import requests
+def download_page(url):
+    response = requests.get(url)
+    response.raise_for_status()
+    return response.text
+```
 
-- **Report issues:** If you encounter any bugs or problems, please submit an issue report on GitHub.
-- **Suggest improvements:**  Share your ideas for new features or enhancements.
-- **Contribute code:**  Contribute code patches or new features.
+Questo modulo scarica il contenuto HTML di una pagina web fornita dall'URL. 
 
+### Extractor
 
-Remember to follow the project's coding style and guidelines.
+```python
+from bs4 import BeautifulSoup
+def extract_info(html_content):
+    soup = BeautifulSoup(html_content, 'html.parser')
+    name = soup.find('span', id='productTitle').get_text(strip=True)
+    price = soup.find('span', class_='a-price-whole').get_text(strip=True)
+    availability = soup.find('span', class_='a-available').get_text(strip=True)
+    return {'name': name, 'price': price, 'availability': availability}
+```
+
+Questo modulo estrae le informazioni essenziali di un prodotto da un contenuto HTML, come nome, prezzo e disponibilità. 
+
+### Price Comparator
+
+```python
+import json
+def compare_prices(current_price, history_file):
+    with open(history_file, 'r') as f:
+        history = json.load(f)
+    current_price_float = float(current_price.replace(',', ''))
+    if 'prices' not in history:
+        return False
+    last_price = history['prices'][-1]
+    return current_price_float < last_price
+```
+
+Questo modulo confronta il prezzo corrente di un prodotto con il prezzo storico, analizzando un file JSON con le informazioni precedenti.
+
+### Notification Agent
+
+```python
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+def send_email(subject, body, to_email):
+    from_email = "tuoindirizzoemail@example.com"
+    from_password = "tuapass"
+    msg = MIMEMultipart()
+    msg['From'] = from_email
+    msg['To'] = to_email
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    server.starttls()
+    server.login(from_email, from_password)
+    server.sendmail(from_email, to_email, msg.as_string())
+    server.quit()
+```
+
+Questo modulo invia un'e-mail di notifica quando il prezzo di un prodotto scende al di sotto di una soglia definita.
+
+### Main
+
+```python
+from downloader import download_page
+from extractor import extract_info
+from price_comparator import compare_prices
+from notification_agent import send_email
+def monitor_products(urls, history_file, to_email):
+    for url in urls:
+        html_content = download_page(url)
+        product_info = extract_info(html_content)
+        current_price = product_info['price']
+        if compare_prices(current_price, history_file):
+            subject = f"Prezzo diminuito per {product_info['name']}"
+            body = f"Il prezzo del prodotto {product_info['name']} è sceso a {current_price}."
+            send_email(subject, body, to_email)
+if __name__ == "__main__":
+    product_urls = ['URL1', 'URL2', 'URL3']
+    history_file = 'data/price_history.json'
+    to_email = 'destinatario@example.com'
+    monitor_products(product_urls, history_file, to_email)
+```
+
+La funzione principale del sistema, il modulo `main.py`, esegue il monitoraggio dei prezzi per un elenco di prodotti specificati, confrontando i prezzi attuali con quelli storici e inviando una notifica via e-mail quando viene rilevata una riduzione.
+
+## Testing
+
+Ogni agente è testabile separatamente usando `pytest`. Esegui i test con il seguente comando:
+
+```bash
+pytest
+```
+
+## Note
+
+- Assicurati di configurare le credenziali SMTP corrette per inviare email.
+- Questo è un esempio di base e potrebbe richiedere ulteriori configurazioni per gestire i requisiti aggiuntivi di scraping e gestione degli errori.
