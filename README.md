@@ -1,77 +1,41 @@
 ```markdown
-# Calcola l'area di un triangolo
+# Multi-Agent System for Sustainability Optimization
 
-Questo codice fornisce una funzione per calcolare l'area di un triangolo e un test unitario per verificare il suo funzionamento.
+This project implements a Multi-Agent System designed to assist in optimizing energy efficiency and sustainability for a given system. 
 
-## Funzione `calcola_area_triangolo`
+The system consists of several interconnected agents, each specializing in a particular aspect of the analysis and recommendation process:
 
-```python
-def calcola_area_triangolo(base, altezza):
-  """
-  Questa funzione calcola l'area di un triangolo.
+- **Energy Analyst:** Collects and analyzes raw energy data to identify trends and areas for improvement.
+- **Sustainability Advisor:**  Analyzes the energy data to generate recommendations for interventions and strategies to enhance sustainability.
+- **Cost Estimator:**  Estimates the costs associated with implementing the recommended interventions.
+- **Government Program Checker:**  Identifies relevant government programs and incentives applicable to the proposed interventions.
 
-  Args:
-    base: La lunghezza della base del triangolo.
-    altezza: L'altezza del triangolo rispetto alla base.
+**Workflow:**
 
-  Returns:
-    L'area del triangolo.
-  """
-  area = 0.5 * base * altezza
-  return area
+The system operates through a defined workflow:
+
+1. **Data Collection:** The Energy Analyst gathers initial energy data relevant to the system.
+2. **Data Analysis:** The Sustainability Advisor receives the energy data and performs an in-depth analysis to identify opportunities for improvement.
+3. **Recommendation Generation:**  Based on the data analysis, the Sustainability Advisor generates a set of specific recommendations for interventions and sustainability strategies.
+4. **Cost-Benefit Analysis:** The Cost Estimator evaluates the financial implications of implementing the recommended interventions, taking into account potential funding opportunities and incentives. 
+5. **Incentive Identification:** The Government Program Checker researches and identifies relevant government programs and incentives that could potentially offset the costs of the recommended interventions.
+6. **Final Report Generation:** The system consolidates all the gathered information and analysis results into a final report, outlining the energy analysis, recommended interventions, cost-benefit analysis, and available incentives.
+
+**Usage:**
+
+To utilize the Multi-Agent System:
+
+1. Instantiate an object of the `MultiAgentSystem` class.
+2. Call the `run()` method to initiate the entire workflow. 
+
+ **Example:**
+
+
+ `system = MultiAgentSystem()` 
+ `system.run()`
+
+**Note:** The internal implementations of the agent classes (EnergyAnalyst, SustainabilityAdvisor, CostEstimator, GovernmentProgramChecker) are currently placeholders. They require further development to incorporate specific logic for data collection, analysis, recommendation generation, cost estimation, and program checking.
+
+
+
 ```
-
-La funzione `calcola_area_triangolo` accetta due argomenti: `base` (la lunghezza della base del triangolo) e `altezza` (l'altezza del triangolo rispetto alla base). 
-
-Calcola l'area del triangolo usando la formula: `area = 0.5 * base * altezza`.
-
-## Esempi di utilizzo
-
-Il codice include due esempi di utilizzo della funzione:
-
-```python
-base1 = 10
-altezza1 = 5
-area1 = calcola_area_triangolo(base1, altezza1)
-print(f"L'area del triangolo con base {base1} e altezza {altezza1} è: {area1}")
-
-base2 = 7
-altezza2 = 12
-area2 = calcola_area_triangolo(base2, altezza2)
-print(f"L'area del triangolo con base {base2} e altezza {altezza2} è: {area2}")
-```
-
-Questi esempi calcolano l'area di due triangoli con parametri specifici e stampano il risultato a schermo.
-
-## Test unitari
-
-Il codice include un test unitario per verificare il corretto funzionamento della funzione `calcola_area_triangolo`:
-
-```python
-import unittest
-
-class TestCalcolaAreaTriangolo(unittest.TestCase):
-
-    def test_base_e_altezza_positivi(self):
-        self.assertEqual(calcola_area_triangolo(10, 5), 25)
-
-    def test_base_e_altezza_zero(self):
-        self.assertEqual(calcola_area_triangolo(0, 5), 0)
-
-    def test_base_negativo(self):
-        with self.assertRaises(ValueError):
-            calcola_area_triangolo(-10, 5)
-
-    def test_altezza_negativa(self):
-        with self.assertRaises(ValueError):
-            calcola_area_triangolo(10, -5)
-
-if __name__ == '__main__':
-    unittest.main()  
-```
-
-Il test utilizza la libreria `unittest` per verificare che la funzione restituisca il risultato corretto in diversi scenari, tra cui:
-
-* Base e altezza positivi
-* Base o altezza zero
-* Base o altezza negativo (generando un ValueError)
