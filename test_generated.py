@@ -1,61 +1,55 @@
-Your final answer must be the great and the most complete as possible, it must be outcome described.
+Ecco il codice dei test unitari per il codice Python fornito:
 
 ```python
 import unittest
-import numpy as np
-from your_module import EnergyAnalyst, SustainabilityAdvisor, CostEstimator, GovernmentProgramChecker, main
+from unittest.mock import patch
+from your_module import SustainableHomeAgent, app
+import json
+import requests
 
-class TestEnergyAnalyst(unittest.TestCase):
-    def test_analyze(self):
-        data = [1, 2, 3, 4, 5]
-        analyst = EnergyAnalyst(data)
-        report = analyst.analyze()
-        self.assertAlmostEqual(report['mean_consumption'], 3)
-        self.assertEqual(report['total_consumption'], 15)
-        self.assertEqual(report['peak_consumption'], 5)
+class TestSustainableHomeAgent(unittest.TestCase):
 
-class TestSustainabilityAdvisor(unittest.TestCase):
-    def test_suggest_interventions(self):
-        advisor = SustainabilityAdvisor()
-        recommendations = advisor.suggest_interventions()
-        self.assertEqual(len(recommendations), 3)
-        self.assertEqual(recommendations[0]['name'], 'Solar Panels')
-        self.assertEqual(recommendations[0]['cost'], 5000)
-
-class TestCostEstimator(unittest.TestCase):
     def setUp(self):
-        self.advisor = SustainabilityAdvisor()
-        self.estimator = CostEstimator(self.advisor.recommendations)
-    
-    def test_estimate_costs(self):
-        cost_estimates = self.estimator.estimate_costs()
-        self.assertEqual(len(cost_estimates), 3)
-        self.assertEqual(cost_estimates[0]['recommendation'], 'Solar Panels')
-        self.assertEqual(cost_estimates[0]['cost'], 5000)
-        self.assertEqual(cost_estimates[0]['roi'], 'reduced energy bills and reduced carbon footprint')
+        self.agent = SustainableHomeAgent()
+        
+    def test_agent_initialization(self):
+        self.assertEqual(self.agent.api_key, "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")
+        self.assertEqual(self.agent.model, "groq/gemma2-9b-it")
+        self.assertEqual(self.agent.user_data, {})
+        self.assertEqual(self.agent.recommendations, [])
 
-class TestGovernmentProgramChecker(unittest.TestCase):
-    def setUp(self):
-        self.advisor = SustainabilityAdvisor()
-        self.checker = GovernmentProgramChecker(self.advisor.recommendations)
-    
-    def test_check_incentives(self):
-        incentives = self.checker.check_incentives()
-        self.assertEqual(len(incentives), 2)
-        self.assertEqual(incentives[0]['name'], 'Solar Energy Rebate')
-        self.assertEqual(incentives[0]['amount'], 2000)
+    def test_set_user_data(self):
+        test_data = {"user": "test", "data": "sample"}
+        self.agent.set_user_data(test_data)
+        self.assertEqual(self.agent.user_data, test_data)
 
-class TestMainFunction(unittest.TestCase):
-    def test_main(self):
-        user_data = np.random.rand(12)
-        final_plan = main(user_data)
-        self.assertIn('consumption_report', final_plan)
-        self.assertIn('recommendations', final_plan)
-        self.assertIn('cost_estimates', final_plan)
-        self.assertIn('incentives', final_plan)
-        self.assertEqual(len(final_plan['recommendations']), 3)
-        self.assertEqual(len(final_plan['cost_estimates']), 3)
-        self.assertEqual(len(final_plan['incentives']), 2)
+    def test_generate_recommendations(self):
+        # Generate recommendations
+        self.agent.generate_recommendations()
+        # Assert that recommendations are empty since generate_recommendations is not implemented
+        self.assertEqual(self.agent.get_recommendations(), [])
+
+    def test_get_recommendations(self):
+        self.assertEqual(self.agent.get_recommendations(), [])
+
+    @patch('flask.Flask')
+    def test_train_agent_endpoint(self, mock_flask):
+        # Create a test client
+        client = app.test_client()
+        
+        # Prepare test data
+        test_data = {"user": "test", "data": "sample"}
+        
+        # Make a POST request
+        response = client.post('/train', 
+                               data=json.dumps(test_data), 
+                               content_type='application/json')
+        
+        # Check response status code
+        self.assertEqual(response.status_code, 200)
+        
+        # Check response content
+        self.assertEqual(response.json, {'message': 'Agent trained successfully'})
 
 if __name__ == '__main__':
     unittest.main()
