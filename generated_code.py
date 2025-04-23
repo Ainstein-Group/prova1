@@ -1,84 +1,39 @@
-```Python
-import numpy as np
+```python
+import crewAI
 
-class EnergyAnalyst:
-    def __init__(self, data):
-        self.data = data
-        self.consumption_report = self.analyze()
+# Set API key and model
+api_key = "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"
+model = "groq/gemma2-9b-it"
 
-    def analyze(self):
-        energy_consumption = np.array(self.data)
-        mean_consumption = np.mean(energy_consumption)
-        consumption_report = {
-            'mean_consumption': mean_consumption,
-            'total_consumption': np.sum(energy_consumption),
-            'peak_consumption': np.max(energy_consumption)
-        }
-        return consumption_report
-
-class SustainabilityAdvisor:
+# Define agent requirements
+class SustainableHomeAgent(crewAI.Agent):
     def __init__(self):
-        self.recommendations = self.suggest_interventions()
+        super().__init__(api_key, model)
+        self.user_data = {}
+        self.recommendations = []
 
-    def suggest_interventions(self):
-        recommendations = [
-            {'name': 'Solar Panels', 'description': 'Install solar panels to reduce energy consumption', 'cost': 5000, 'benefits': 'reduced energy bills and reduced carbon footprint'},
-            {'name': 'Thermal Insulation', 'description': 'Install thermal insulation to reduce heat loss', 'cost': 2000, 'benefits': 'reduced energy bills and increased comfort'},
-            {'name': 'LED Lighting', 'description': 'Replace traditional lighting with LED lighting', 'cost': 1000, 'benefits': 'reduced energy consumption and increased visibility'}
-        ]
-        return recommendations
+    def set_user_data(self, user_data):
+        self.user_data = user_data
 
-class CostEstimator:
-    def __init__(self, recommendations):
-        self.recommendations = recommendations
-        self.cost_estimates = self.estimate_costs()
+    def generate_recommendations(self):
+        # Implement recommendation algorithm using user data and environmental metrics
+        pass
 
-    def estimate_costs(self):
-        cost_estimates = []
-        for recommendation in self.recommendations:
-            cost_estimate = {
-                'recommendation': recommendation['name'],
-                'cost': recommendation['cost'],
-                'roi': recommendation['benefits']
-            }
-            cost_estimates.append(cost_estimate)
-        return cost_estimates
+    def get_recommendations(self):
+        return self.recommendations
 
-class GovernmentProgramChecker:
-    def __init__(self, recommendations):
-        self.recommendations = recommendations
-        self.incentives = self.check_incentives()
+# Define API endpoint for agent training
+import flask
+app = flask.Flask(__name__)
+@app.route('/train', methods=['POST'])
+def train_agent():
+    user_data = request.get_json()
+    agent.set_user_data(user_data)
+    agent.generate_recommendations()
+    return jsonify({'message': 'Agent trained successfully'})
 
-    def check_incentives(self):
-        incentives = [
-            {'name': 'Solar Energy Rebate', 'description': 'Rebate for installing solar panels', 'amount': 2000},
-            {'name': 'Energy Efficiency Grant', 'description': 'Grant for energy efficient appliances', 'amount': 1000}
-        ]
-        return incentives
-
-def main(user_data):
-    # Step 1: Data Collection
-    energy_analyst = EnergyAnalyst(user_data)
-    sustainability_advisor = SustainabilityAdvisor()
-
-    # Step 2: Analysis
-    consumption_report = energy_analyst.consumption_report
-
-    # Step 3: Estimation
-    cost_estimator = CostEstimator(sustainability_advisor.recommendations)
-
-    # Step 4: Incentive Verification
-    gov_checker = GovernmentProgramChecker(sustainability_advisor.recommendations)
-
-    # Final Analysis and Recommendation
-    final_plan = {
-        'consumption_report': consumption_report,
-        'recommendations': sustainability_advisor.recommendations,
-        'cost_estimates': cost_estimator.cost_estimates,
-        'incentives': gov_checker.incentives
-    }
-    return final_plan
-
-user_data = np.random.rand(12)  # Sample user data
-final_home_plan = main(user_data)
+# Run the agent
+if __name__ == '__main__':
+    agent = SustainableHomeAgent()
+    app.run(debug=True)
 ```
