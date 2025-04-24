@@ -1,50 +1,37 @@
 ```
-import torch
-import torch.nn as nn
-import torch.optim as optim
-from transformers import AutoModelForSequenceToSequence, AutoTokenizer
+from crewai import Agent, Task, Crew
+import llm
+import json
 import random
-from collections import defaultdict
-from dataclasses import dataclass
-from typing import List, Dict, Any
 
-@dataclass
-class CrewAI_Agent(nn.Module):
-    transformer = AutoModelForSequenceToSequence.from_pretrained('t5-small')
-    tokenizer = AutoTokenizer.from_pretrained('t5-small')
+class CodeWriterAgent(Agent):
+    def __init__(self, role, goal, backstory, llm):
+        super().__init__(role, goal, backstory, llm)
 
-    def generate_response(self, input_text: str, num_beams: int = 4):
-        input_ids = self.tokenizer.encode(input_text, return_tensors="pt").to(self.transformer.device)
-        outputs = self.transformer.generate(input_ids=input_ids, max_length=200, num_beams=num_beams)
-        output_text = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
-        return output_text
+    def code_generator(self, prompt):
+        code = ""
+        prompt_parts = prompt.split(" ")
+        for part in prompt_parts:
+            if part.startswith("import"):
+                code += f"import {part.split('(')[1].split(')')[0]}\n"
+            elif part.startswith("class"):
+                code += f"class {part.split(' ')[1]}:\n"
+            elif part.startswith("def"):
+                code += f"def {part.split(' ')[1]}:\n"
+            else:
+                code += part + "\n"
+        return code
 
-    def train_on_experience(self, experience: List[Dict[str, Any]]):
-        optimizer = optim.Adam(self.transformer.parameters(), lr=1e-5)
-        for i, batch in enumerate(experience):
-            input_text, target_text = batch["input_text"], batch["target_text"]
-            input_ids = self.tokenizer.encode(input_text, return_tensors="pt").to(self.transformer.device)
-            target_ids = self.tokenizer.encode(target_text, return_tensors="pt").to(self.transformer.device)
-            optimizer.zero_grad()
-            outputs = self.transformer(input_ids=input_ids, labels=target_ids)
-            loss = outputs.loss
-            loss.backward()
-            optimizer.step()
-            print(f"Training step {i}, loss: {loss.item()}")
+    def task_handler(self, task):
+        prompt = task.description
+        code = self.code_generator(prompt)
+        return code
 
-    def save_model(self, filepath: str):
-        torch.save(self.transformer.state_dict(), filepath)
-        print(f"Model saved to {filepath}")
+def create_agents(llms1, llms2):
+    agent = CodeWriterAgent(role="Code Writer", goal="Scrivere codice Python per agenti CrewAI", backstory="Esperto di multi-agente.", llm=llms1)
+    return agent
 
-    def load_model(self, filepath: str):
-        self.transformer.load_state_dict(torch.load(filepath, map_location="cpu"))
-        print(f"Model loaded from {filepath}")
-
-def create_agent(llms1, llms2):
-    crew_ai_agent = CrewAI_Agent()
-    return crew_ai_agent
-
-task = Task(description="Conversational AI Agent", agent=create_agent(llms1, llms2))
-crew = Crew(agents=[agent], tasks=[task])
+task = Task(description="Scrivere codice Python per un agente basato su prompt ottimizzato", agent=create_agents(llms1,llms2)[0])
+crew = Crew(agents=[create_agents(llms1,llms2)[0]], tasks=[task])
 crew.kickoff()
 ```
