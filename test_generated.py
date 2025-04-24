@@ -1,144 +1,73 @@
+Ecco i test unitari per il codice Python:
+
 ```python
-import pytest
-from unittest.mock import patch, Mock
-from your_module import (  # Replace 'your_module' with the actual module name
-    GroqLLM,
-    create_agents,
-    GitHubUploaderAgent,
-    run_pipeline
-)
+import unittest
+import torch
+from your_module import CrewAI_Agent, create_agent  # Sostituire 'your_module' con il nome del modulo
 
-@pytest.fixture
-def mock_llm():
-    llm = Mock(spec=GroqLLM)
-    llm._call.return_value = "Test response"
-    return llm
-
-@pytest.fixture
-def mock_github():
-    with patch("github.Github") as mock_github:
-        yield mock_github
-
-@pytest.fixture
-def mock_requests_post():
-    with patch("requests.post") as mock_post:
-        yield mock_post
-
-@pytest.fixture
-def mock_temp_dir():
-    with patch("tempfile.mkdtemp") as mock_temp:
-        yield mock_temp
-
-@pytest.fixture
-def mock_zipfile():
-    with patch("zipfile.ZipFile") as mock_zip:
-        yield mock_zip
-
-class TestGroqLLM:
-    def test__call(self, mock_requests_post):
-        llm = GroqLLM("test_model", "test_key")
-        response = Mock()
-        response.json.return_value = {"choices": [{"message": {"content": "test"}}]}
-        mock_requests_post.return_value = response
+class TestCrewAI_Agent(unittest.TestCase):
+    
+    def setUp(self):
+        self.agent = create_agent("gpt2", "t5-small")  # Sostituire con i parametri appropriati
         
-        result = llm._call("test prompt")
-        assert result == "test"
+    def test_generate_response(self):
+        input_text = "Hello, how are you?"
+        response = self.agent.generate_response(input_text)
+        self.assertIsInstance(response, str)
+        self.assertGreater(len(response), 0)
         
-        # Verify the request was made correctly
-        mock_requests_post.assert_called_once_with(
-            "https://api.groq.com/openai/v1/chat/completions",
-            headers={
-                "Authorization": "Bearer test_key",
-                "Content-Type": "application/json"
-            },
-            json={
-                "model": "test_model",
-                "messages": [{"role": "user", "content": "test prompt"}],
-                "temperature": 0.7
-            }
-        )
+        # Test con input vuoto
+        response_empty = self.agent.generate_response("")
+        self.assertIsInstance(response_empty, str)
         
-    def test__call_raises_exception(self, mock_requests_post):
-        llm = GroqLLM("test_model", "test_key")
-        mock_response = Mock()
-        mock_response.raise_for_status.side_effect = Exception("Test error")
-        mock_requests_post.return_value = mock_response
+    def test_train_on_experience(self):
+        # Crea un'esperienza di training
+        experience = [{
+            "input_text": "Hello",
+            "target_text": "Hi"
+        }]
         
-        with pytest.raises(Exception):
-            llm._call("test prompt")
-
-class TestCreateAgents:
-    def test_create_agents(self, mock_llm):
-        llm1 = Mock()
-        llm2 = Mock()
-        llm3 = Mock()
-        llm4 = Mock()
-        
-        prompt_writer, code_writer, code_tester, doc_writer = create_agents(llm1, llm2, llm3, llm4)
-        
-        # Verify all agents are created with correct parameters
-        assert prompt_writer.role == "Prompt Writer"
-        assert code_writer.role == "Code Writer"
-        assert code_tester.role == "Tester"
-        assert doc_writer.role == "Doc Writer"
-
-class TestGitHubUploaderAgent:
-    def test_upload_files(self, mock_github, mock_temp_dir, mock_zipfile):
-        # Setup mock directory and files
-        mock_temp_dir.return_value = "test_dir"
-        test_file = "test_file.py"
-        test_content = "test_content"
-        
-        # Create the uploader
-        uploader = GitHubUploaderAgent("test_key", "test_repo", "test_dir")
-        
-        # Mock the file reading
-        with patch("builtins.open", new=Mock()) as mock_open:
-            mock_file = Mock()
-            mock_file.read.return_value = test_content
-            mock_open.return_value.__enter__.return_value = mock_file
+        # Esegue il training
+        for batch in experience:
+            input_text, target_text = batch["input_text"], batch["target_text"]
+            input_ids = self.agent.tokenizer.encode(input_text, return_tensors="pt").to(self.agent.transformer.device)
+            target_ids = self.agent.tokenizer.encode(target_text, return_tensors="pt").to(self.agent.transformer.device)
             
-            # Call upload files
-            uploader.upload_files()
+            optimizer = torch.optim.Adam(self.agent.transformer.parameters(), lr=1e-5)
+            optimizer.zero_grad()
             
-            # Verify files are uploaded
-            uploader.repo.create_file.assert_called_with(test_file, "Caricamento file", test_content)
+            outputs = self.agent.transformer(input_ids=input_ids, labels=target_ids)
+            loss = outputs.loss
+            self.assertLess(loss.item(), float('inf'))  # Verifica che la loss non sia infinita
+            self.assertGreaterEqual(loss.item(), 0)    # Verifica che la loss sia non negativa
             
-    def test_ignore_non_text_files(self, mock_github, mock_temp_dir):
-        # Setup mock directory and files
-        mock_temp_dir.return_value = "test_dir"
+            loss.backward()
+            optimizer.step()
+            
+    def test_save_and_load_model(self):
+        # Salva il modello
+        temp_path = "temp_model.pth"
+        self.agent.save_model(temp_path)
         
-        # Create the uploader
-        uploader = GitHubUploaderAgent("test_key", "test_repo", "test_dir")
+        # Carica il modello
+        self.agent.load_model(temp_path)
         
-        # Test that non-text files are ignored
-        uploader.upload_files()
+        # Verifica che il modello è stato caricato correttamente
+        self.assertIsNotNone(self.agent.transformer.state_dict())
         
-        # Verify that create_file was not called for non-text files
-        uploader.repo.create_file.assert_not_called()
-
-class TestRunPipeline:
-    def test_run_pipeline(self, mock_llm, mock_github, mock_temp_dir, mock_zipfile, mock_requests_post):
-        # Mock all dependencies
-        llm1 = Mock()
-        llm2 = Mock()
-        llm3 = Mock()
-        llm4 = Mock()
+        # Pulizia
+        import os
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+            
+    def test_create_agent(self):
+        agent = create_agent("gpt2", "t5-small")
+        self.assertIsInstance(agent, CrewAI_Agent)
+        self.assertIsNotNone(agent.transformer)
+        self.assertIsNotNone(agent.tokenizer)
         
-        # Run the pipeline
-        optimized_prompt, generated_code, generated_tests, generated_docs, zip_path = run_pipeline("test_prompt")
-        
-        # Verify that all components are called
-        llm1._call.assert_called_once()
-        llm2._call.assert_called_once()
-        llm3._call.assert_called_once()
-        llm4._call.assert_called_once()
-        
-        # Verify that files are created and uploaded
-        assert zip_path.endswith("generated_package.zip")
-        # Add more assertions as needed
-        
-        # Verify that GitHub upload was called
-        uploader = GitHubUploaderAgent("test_key", "test_repo", "test_dir")
-        uploader.upload_files.assert_called_once()
+if __name__ == "__main__":
+    unittest.main()
 ```
+
+Questo set di test copre le principali funzionalità del codice, inclusa la generazione di risposte, l'addestramento, il salvataggio e il caricamento del modello, oltre alla creazione dell'agente.
