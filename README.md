@@ -1,64 +1,49 @@
-# CodeGenerator: A Tool for Generating Python Code
+# Multi-Agent System Documentation
 
-This project provides a `CodeGenerator` class that can take user requests in a JSON format and generate corresponding Python code.
+This directory contains the source code and documentation for a multi-agent system.
+
+## Overview
+
+The multi-agent system consists of multiple independent agents that can interact with each other. Each agent has its own state and can send and receive messages to other agents. Agents can update their state based on incoming messages and their own internal logic.
+
+## Components
+
+* **Agent:**
+    * Represents a single agent in the system.
+    * Has an identifier (ID), a state, and methods for sending and receiving messages.
+    * Can update its state based on messages and internal logic.
 
 ## Usage
 
-The `CodeGenerator` class is designed to be used as follows:
+To run the multi-agent system, follow these steps:
 
-1. **Initialization:**
-
-   ```python
-   code_generator = CodeGenerator()
-   ```
-
-2. **Provide User Requests:**
-
-   User requests are structured as a list of dictionaries, where each dictionary represents a single code element:
-
-   ```json
-   [
-     {'type': 'function', 'name': 'hello', 'parameters': ['name'], 'body': 'print(f"Hello {name}")'},
-     {'type': 'variable', 'name': 'age', 'value': 25}
-   ]
-   ```
-
-3. **Generate Code:**
-
-   ```python
-   generated_code = code_generator.generate_code(user_request)
-   ```
-   
-
-4. **Access Generated Code and Additional Information:**
-
-   The `generate_code` method returns the generated Python code as a string. The `CodeGenerator` object also provides methods for:
-
-   * `get_random_comment()`: Returns a random comment string.
-   * `explain_code()`: Provides a lexical analysis of the generated code, counting word frequencies.
-   * `suggest_improvements()`: Offers potential improvements for the generated code.
-   * `provide_alternatives()`: Suggests alternative approaches to the code generation task.
+1. Install the required dependencies (see `requirements.txt`).
+2. Create instances of the `Agent` class, providing unique IDs for each agent.
+3. Implement agent behavior by defining the logic within the `__init__` method of each agent's class.
+4. Agents can then communicate by sending and receiving messages using the `send_message` and `receive_message` methods.
+5. Agents can update their state using the `update_state` method.
 
 ## Example
 
 ```python
-code_generator = CodeGenerator()
-user_request = [
-    {'type': 'function', 'name': 'hello', 'parameters': ['name'], 'body': 'print(f"Hello {name}")'},
-    {'type': 'variable', 'name': 'age', 'value': 25}
-]
-generated_code = code_generator.generate_code(user_request)
-print(generated_code)
-print(code_generator.get_random_comment())
-print(code_generator.explain_code())
-print(code_generator.suggest_improvements())
-print(code_generator.provide_alternatives())
+# Example usage
+from agent import Agent
+
+# Create two agents
+agent1 = Agent("agent1")
+agent2 = Agent("agent2")
+
+# Send a message from agent1 to agent2
+agent1.send_message("agent2", "Hello from agent1!")
+
+# Agent2 receives the message
+agent2.receive_message("agent1", "Hello from agent1!")
 ```
 
-## Contributing
+## Testing
 
-This project is open-source and welcomes contributions. If you want to contribute:
+The `test_agent_methods.py` file contains unit tests for the `Agent` class. To run the tests, execute the following command:
 
-* Fork the repository.
-* Make your changes.
-* Create a pull request.
+```bash
+python -m unittest tests/test_agent_methods.py
+```
