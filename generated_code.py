@@ -1,37 +1,53 @@
-```
+```python
+import logging
+import requests
+from typing import Dict, List
 from crewai import Agent, Task, Crew
-import llm
-import json
-import random
+from google.cloud import aiplatform
 
-class CodeWriterAgent(Agent):
-    def __init__(self, role, goal, backstory, llm):
-        super().__init__(role, goal, backstory, llm)
+class SustainableHomeAgent(Agent):
+    def __init__(self, llm: aiplatform.LLM):
+        super().__init__(role="Sustainable Home Agent", goal="Provide personalized sustainability recommendations", backstory="Expert in multi-agent systems.")
+        self.llm = llm
 
-    def code_generator(self, prompt):
-        code = ""
-        prompt_parts = prompt.split(" ")
-        for part in prompt_parts:
-            if part.startswith("import"):
-                code += f"import {part.split('(')[1].split(')')[0]}\n"
-            elif part.startswith("class"):
-                code += f"class {part.split(' ')[1]}:\n"
-            elif part.startswith("def"):
-                code += f"def {part.split(' ')[1]}:\n"
-            else:
-                code += part + "\n"
-        return code
+    def collect_data(self) -> Dict:
+        # Collect initial data from user
+        data = {}
+        # Add form fields and API calls to collect data
+        return data
 
-    def task_handler(self, task):
-        prompt = task.description
-        code = self.code_generator(prompt)
-        return code
+    def analyze_data(self, data: Dict) -> Dict:
+        # Analyze data using the LLM
+        recommendations = self.llm.analyze(data)
+        return recommendations
 
-def create_agents(llms1, llms2):
-    agent = CodeWriterAgent(role="Code Writer", goal="Scrivere codice Python per agenti CrewAI", backstory="Esperto di multi-agente.", llm=llms1)
-    return agent
+    def generate_recommendations(self, recommendations: Dict) -> List:
+        # Generate personalized sustainability recommendations
+        return [f"Recommendation: {recommendation}" for recommendation in recommendations]
 
-task = Task(description="Scrivere codice Python per un agente basato su prompt ottimizzato", agent=create_agents(llms1,llms2)[0])
-crew = Crew(agents=[create_agents(llms1,llms2)[0]], tasks=[task])
-crew.kickoff()
+    def provide_recommendations(self, recommendations: List) -> None:
+        # Provide recommendations to user
+        print("Recommendations:")
+        for recommendation in recommendations:
+            print(recommendation)
+
+    def monitor_and_update(self) -> None:
+        # Monitor and update recommendations periodically
+        # Add API calls to update recommendations
+        pass
+
+def create_agents(llms: List[aiplatform.LLM]) -> Crew:
+    agents = []
+    for llm in llms:
+        agent = SustainableHomeAgent(llm)
+        agents.append(agent)
+    return Crew(agents=agents)
+
+def main() -> None:
+    llms = [aiplatform.LLM("groq/gemma2-9b-it")]
+    crew = create_agents(llms)
+    crew.kickoff()
+
+if __name__ == "__main__":
+    main()
 ```
