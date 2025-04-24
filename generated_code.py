@@ -1,74 +1,45 @@
-```
-import crewai
-import groq
-import logging
-from typing import Dict, Any
+```python
+import numpy as np
+import pandas as pd
+from typing import List, Dict, Any
 
-logging.basicConfig(level=logging.INFO)
+class GreenHomePlanner:
+    def __init__(self, energy_consumption_data: pd.DataFrame, house_info: Dict[str, Any], user_preferences: Dict[str, Any]):
+        self.energy_consumption_data = energy_consumption_data
+        self.house_info = house_info
+        self.user_preferences = user_preferences
 
-class SolarCalculator:
-    def __init__(self):
-        self.data = {
-            "superficie": 0,
-            "località": "",
-            "consumo": 0,
-            "budget": 0
-        }
+    def analyze_energy_consumption(self) -> pd.DataFrame:
+        # TO DO: implement energy consumption analysis
+        pass
 
-    def set_data(self, superficie: int, località: str, consumo: int, budget: int) -> None:
-        self.data["superficie"] = superficie
-        self.data["località"] = località
-        self.data["consumo"] = consumo
-        self.data["budget"] = budget
+    def suggest_sustainable_interventions(self) -> List[Dict[str, Any]]:
+        # TO DO: implement sustainable intervention suggestion
+        pass
 
-    def calculate_cost(self) -> float:
-        # Calcolo del costo stimato dell'impianto solare
-        cost = (self.data["consumo"] * 0.1) + (self.data["superficie"] * 0.05)
-        return cost
+    def estimate_costs_and_benefits(self, intervention: Dict[str, Any]) -> Dict[str, Any]:
+        # TO DO: implement cost and benefit estimation
+        pass
 
-    def calculate_roi(self) -> float:
-        # Calcolo del Ritorno sull'Investimento (ROI)
-        roi = (self.data["budget"] - self.data["consumo"]) / self.data["budget"]
-        return roi
+    def check_government_incentives(self, intervention: Dict[str, Any]) -> Dict[str, Any]:
+        # TO DO: implement government incentive check
+        pass
 
-    def calculate_saving(self) -> float:
-        # Calcolo del risparmio economico
-        saving = self.data["budget"] - self.data["consumo"]
-        return saving
+    def run(self) -> None:
+        energy_consumption_analysis = self.analyze_energy_consumption()
+        sustainable_interventions = self.suggest_sustainable_interventions()
+        for intervention in sustainable_interventions:
+            estimated_costs_and_benefits = self.estimate_costs_and_benefits(intervention)
+            government_incentives = self.check_government_incentives(intervention)
+            print(f"Intervention: {intervention['name']}")
+            print(f"Estimated costs: {estimated_costs_and_benefits['costs']}")
+            print(f"Estimated benefits: {estimated_costs_and_benefits['benefits']}")
+            print(f"Government incentives: {government_incentives}")
 
-    def calculate_incentives(self) -> float:
-        # Calcolo degli incentivi disponibili
-        incentives = self.data["budget"] * 0.1
-        return incentives
-
-    def calculate_co2_saving(self) -> float:
-        # Calcolo della quantità di CO₂ risparmiata
-        co2_saving = self.data["consumo"] * 0.05
-        return co2_saving
-
-    def run(self) -> Dict[str, Any]:
-        self.set_data(**dati_fittizi)
-        cost = self.calculate_cost()
-        roi = self.calculate_roi()
-        saving = self.calculate_saving()
-        incentives = self.calculate_incentives()
-        co2_saving = self.calculate_co2_saving()
-        return {
-            "cost": cost,
-            "roi": roi,
-            "saving": saving,
-            "incentives": incentives,
-            "co2_saving": co2_saving
-        }
-
-dati_fittizi = {
-    "superficie": 50,
-    "località": "Roma",
-    "consumo": 8000,
-    "budget": 20000
-}
-
-calculator = SolarCalculator()
-result = calculator.run()
-print(result)
+if __name__ == "__main__":
+    energy_consumption_data = pd.read_csv("energy_consumption_data.csv")
+    house_info = {"house_size": 100, "house_type": "single_family"}
+    user_preferences = {"budget": 10000, "intervention_type": "solar_panels"}
+    green_home_planner = GreenHomePlanner(energy_consumption_data, house_info, user_preferences)
+    green_home_planner.run()
 ```
