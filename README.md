@@ -1,121 +1,122 @@
 ```markdown
-# Sustainable Home Agent
+# SolarCalculator: A Python Tool for Estimating Solar Panel Costs
 
-## Descrizione
+## Description
 
-Il progetto Sustainable Home Agent è un sistema di raccomandazioni basato su intelligenza artificiale (AI) progettato per aiutare gli utenti a vivere in modo più sostenibile. L'agente utilizza un modello linguistico di grandi dimensioni (LLM) per analizzare i dati degli utenti e fornire consigli personalizzati su come ridurre il loro impatto ambientale.
+SolarCalculator is a Python tool designed to help you estimate the costs associated with installing solar panels. It utilizes an API to retrieve location-specific data, allowing for accurate calculations of cost, return on investment (ROI), energy savings, and CO2 emissions reduction. 
 
-## Requisiti e Dipendenze
+## Requirements
 
-* Python 3.7 o superiore
-* Google Cloud SDK
-* `requests`
-* `google-cloud-aiplatform`
-* `crewai`
+* **Python 3.6 or higher:**  Ensure you have a compatible Python version installed.
+* **requests:** This library is used to make API calls. Install it using pip:
+   ```bash
+   pip install requests
+   ```
+* **logging:** This library is used for logging errors and other important information.
 
-## Installazione
+## Installation
 
-1. Installa le dipendenze necessarie:
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/your-username/solar-calculator.git
+   ```
+2. **Navigate to the project directory:**
+   ```bash
+   cd solar-calculator
+   ```
+3. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-```bash
-pip install requests google-cloud-aiplatform crewai
+## Usage
+
+1. **Replace `YOUR_API_KEY`:**  
+   In the `solar_calculator.py` file, replace `YOUR_API_KEY` with your actual API key from the solar panel data provider.
+
+2. **Run the script:**
+   ```bash
+   python solar_calculator.py
+   ```
+
+3. **Enter the following information when prompted:**
+   * **Surface area (m²):** The area of your roof or ground where you plan to install the solar panels.
+   * **Location:** The city or region where the solar installation will be located.
+   * **Consumption (kWh):** Your average monthly electricity consumption.
+   * **Budget:** Your estimated budget for the solar panel installation.
+
+4. **View the results:** The script will display the calculated cost, ROI, energy savings, and CO2 emissions saved.
+
+**Example:**
+
+```
+Enter surface area: 10.0
+Enter location: London
+Enter consumption: 1000.0
+Enter budget: 10000.0
+
+Cost: 1000.0
+ROI: -90.0%
+Savings: 500.0
+CO2 Emissions Saved: 100.0
 ```
 
-2. Assicurati di avere un account Google Cloud e di aver abilitato l'API Vertex AI.
+## Architecture
 
-## Guida all'Utilizzo
+SolarCalculator consists of a single Python file (`solar_calculator.py`) containing the following:
 
-1. **Creare un Agente:**
-
-```python
-from your_module import SustainableHomeAgent, create_agents
-from google.cloud import aiplatform
-
-# Inizializzare un LLM da Vertex AI
-llm = aiplatform.LLM("groq/gemma2-9b-it")
-
-# Creare un agente
-agent = SustainableHomeAgent(llm)
-```
-
-2. **Raccolta dei Dati:**
-
-L'agente raccoglie i dati iniziali dall'utente tramite un modulo o un'interfaccia utente.
-
-```python
-data = agent.collect_data()
-```
-
-3. **Analisi dei Dati:**
-
-L'agente analizza i dati raccolti utilizzando il modello linguistico.
-
-```python
-recommendations = agent.analyze_data(data)
-```
-
-4. **Generazione delle Raccomandazioni:**
-
-L'agente genera raccomandazioni personalizzate basate sui risultati dell'analisi.
-
-```python
-recommendations_list = agent.generate_recommendations(recommendations)
-```
-
-5. **Fornire le Raccomandazioni:**
-
-L'agente fornisce le raccomandazioni all'utente.
-
-```python
-agent.provide_recommendations(recommendations_list)
-```
-
-6. **Monitoraggio e Aggiornamento:**
-
-L'agente monitora i dati e aggiorna le raccomandazioni periodicamente.
-
-```python
-agent.monitor_and_update()
-```
-
-## Architettura
-
-L'architettura del Sustainable Home Agent è basata su un pattern di agente multi-agente.
-
-* **Agente:** Un singolo agente è responsabile dell'interazione con un utente, della raccolta dei dati, dell'analisi e della generazione di raccomandazioni.
-* **LLM:** Il modello linguistico di grandi dimensioni fornisce la capacità di comprendere e generare testo naturale.
-* **Crew:** La classe `Crew` gestisce un gruppo di agenti e coordina le loro attività.
+* **`SolarCalculator` class:**
+    *  `__init__`: Initializes the class with the API key and URL.
+    *  `calculate_cost`:  Calculates the cost, ROI, savings, and CO2 emissions based on user input and API data.
+    *  `run`:  Handles user input, calls `calculate_cost`, and displays the results.
 
 ## API Reference
 
-**Classe `SustainableHomeAgent`:**
+* **`SolarCalculator` class:**
 
-* **`__init__(self, llm: aiplatform.LLM)`:** Inizializza un nuovo agente con un modello linguistico fornito.
-* **`collect_data(self) -> Dict`:** Raccoglie i dati iniziali dall'utente.
-* **`analyze_data(self, data: Dict) -> Dict`:** Analizza i dati utilizzando il modello linguistico.
-* **`generate_recommendations(self, recommendations: Dict) -> List`:** Genera raccomandazioni personalizzate.
-* **`provide_recommendations(self, recommendations: List) -> None`:** Fornisce le raccomandazioni all'utente.
-* **`monitor_and_update(self) -> None`:** Monitora i dati e aggiorna le raccomandazioni periodicamente.
+    *  **`__init__(self)`:** Initializes the object with the API key and URL.
 
-**Funzione `create_agents(llms: List[aiplatform.LLM]) -> Crew`:**
+        * **Parameters:**
+            * `api_key`: Your API key for accessing the solar panel data provider.
+            * `api_url`: The base URL of the API.
 
-* Crea un nuovo gruppo di agenti utilizzando una lista di modelli linguistici.
+    *  **`calculate_cost(self, surface: float, location: str, consumption: float, budget: float) -> Dict`:** Calculates the cost, ROI, savings, and CO2 emissions.
 
-## Guida ai Test
+        * **Parameters:**
+            * `surface`: The surface area of the solar panel installation (in square meters).
+            * `location`: The location of the installation.
+            * `consumption`: Your average monthly electricity consumption (in kilowatt-hours).
+            * `budget`: Your estimated budget for the installation.
 
-Il progetto include un suite di test unitari utilizzando la libreria `pytest`.
+        * **Returns:** A dictionary containing the calculated values for:
+            * `cost`: The total cost of the installation.
+            * `roi`: The return on investment as a percentage.
+            * `savings`: The estimated annual energy savings.
+            * `co2_emissions`: The estimated annual CO2 emissions saved.
 
-Per eseguire i test, utilizzare il seguente comando:
+    *  **`run(self)`:** Runs the interactive user interface for the SolarCalculator.
+
+## Testing
+
+This project includes unit tests written using the `pytest` framework. To run the tests:
 
 ```bash
 pytest
 ```
 
-## Contribuzione e Licenza
+## Contributing
 
-Questo progetto è open-source e rilasciato sotto la licenza MIT.
+Contributions are welcome! Please follow these guidelines:
 
-Contribuisci al progetto inviando pull request su GitHub.
+1. Fork the repository.
+2. Create a new branch for your feature or bug fix.
+3. Make your changes and commit them.
+4. Push your branch to your fork.
+5. Submit a pull request.
+
+## License
+
+SolarCalculator is licensed under the MIT License.
 
 
 
