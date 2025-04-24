@@ -2,52 +2,67 @@
 import logging
 import requests
 from typing import Dict, List
+
 from crewai import Agent, Task, Crew
-from google.cloud import aiplatform
 
-class SustainableHomeAgent(Agent):
-    def __init__(self, llm: aiplatform.LLM):
-        super().__init__(role="Sustainable Home Agent", goal="Provide personalized sustainability recommendations", backstory="Expert in multi-agent systems.")
-        self.llm = llm
+# Constants
+API_KEY = "YOUR_API_KEY"
+API_URL = "https://api.example.com"
 
-    def collect_data(self) -> Dict:
-        # Collect initial data from user
-        data = {}
-        # Add form fields and API calls to collect data
-        return data
+# Logging setup
+logging.basicConfig(level=logging.INFO)
 
-    def analyze_data(self, data: Dict) -> Dict:
-        # Analyze data using the LLM
-        recommendations = self.llm.analyze(data)
-        return recommendations
+class SolarCalculator:
+    def __init__(self):
+        self.api_key = API_KEY
+        self.api_url = API_URL
 
-    def generate_recommendations(self, recommendations: Dict) -> List:
-        # Generate personalized sustainability recommendations
-        return [f"Recommendation: {recommendation}" for recommendation in recommendations]
+    def calculate_cost(self, surface: float, location: str, consumption: float, budget: float) -> Dict:
+        try:
+            # Call API to get data specific to location
+            response = requests.get(f"{self.api_url}/location/{location}", headers={"Authorization": f"Bearer {self.api_key}"})
+            location_data = response.json()
 
-    def provide_recommendations(self, recommendations: List) -> None:
-        # Provide recommendations to user
-        print("Recommendations:")
-        for recommendation in recommendations:
-            print(recommendation)
+            # Calculate cost
+            cost = surface * location_data["cost_per_square_meter"]
 
-    def monitor_and_update(self) -> None:
-        # Monitor and update recommendations periodically
-        # Add API calls to update recommendations
-        pass
+            # Calculate ROI
+            roi = (cost - budget) / budget * 100
 
-def create_agents(llms: List[aiplatform.LLM]) -> Crew:
-    agents = []
-    for llm in llms:
-        agent = SustainableHomeAgent(llm)
-        agents.append(agent)
-    return Crew(agents=agents)
+            # Calculate savings
+            savings = consumption * location_data["savings_per_kwh"]
 
-def main() -> None:
-    llms = [aiplatform.LLM("groq/gemma2-9b-it")]
-    crew = create_agents(llms)
-    crew.kickoff()
+            # Calculate CO2 emissions saved
+            co2_emissions = savings * location_data["co2_emissions_per_kwh"]
+
+            return {
+                "cost": cost,
+                "roi": roi,
+                "savings": savings,
+                "co2_emissions": co2_emissions
+            }
+        except Exception as e:
+            logging.error(f"Error calculating cost: {e}")
+            return {}
+
+    def run(self):
+        # Create UI
+        surface = float(input("Enter surface area: "))
+        location = input("Enter location: ")
+        consumption = float(input("Enter consumption: "))
+        budget = float(input("Enter budget: "))
+
+        # Calculate cost
+        result = self.calculate_cost(surface, location, consumption, budget)
+
+        # Display results
+        print("Cost:", result["cost"])
+        print("ROI:", result["roi"])
+        print("Savings:", result["savings"])
+        print("CO2 Emissions Saved:", result["co2_emissions"])
 
 if __name__ == "__main__":
-    main()
+    calculator = SolarCalculator()
+    calculator.run()
 ```
+This code defines a `SolarCalculator` class that calculates the cost of a solar panel installation based on the input parameters. It uses the `requests` library to call an API to get data specific to the location, and then calculates the cost, ROI, savings, and CO2 emissions saved. The code also includes error handling and logging.
