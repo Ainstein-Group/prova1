@@ -1,105 +1,110 @@
 ```markdown
-# SolarCalculator
+# GreenHomePlanner: Your Sustainable Home Design Assistant
 
-## Descrizione
+**GreenHomePlanner** is a Python tool designed to help homeowners analyze their energy consumption, suggest sustainable interventions, and estimate the costs and benefits of these interventions. 
 
-SolarCalculator è uno strumento Python per stimare i costi, il ROI, il risparmio economico, gli incentivi e la riduzione delle emissioni di CO₂ per un impianto fotovoltaico domestico. 
+## Description
 
-## Requisiti e Dipendenze
+This project aims to empower homeowners to make informed decisions about improving the energy efficiency of their homes. It provides a framework for analyzing existing energy consumption data, identifying potential areas for improvement, and evaluating the financial and environmental impact of various sustainable solutions.
 
-* Python 3.6 o superiore
+## Requirements and Dependencies
 
-* Le seguenti librerie Python:
+* **Python 3.7 or higher**
+* **Pandas:** Data manipulation and analysis library ([https://pandas.pydata.org/](https://pandas.pydata.org/))
+* **NumPy:** Numerical computing library ([https://numpy.org/](https://numpy.org/))
+* **typing:** Type hinting for better code readability and maintainability
 
-    * `logging`
+## Installation
 
-    * `typing`
+1. Clone the repository: `git clone https://github.com/your-username/GreenHomePlanner.git`
+2. Navigate to the project directory: `cd GreenHomePlanner`
+3. Install the required dependencies: `pip install -r requirements.txt`
 
-## Guida all'installazione
+## Usage
 
-Puoi installare SolarCalculator tramite pip:
+**1. Data Preparation:**
 
-```bash
-pip install solarcalculator
-```
+* Ensure you have energy consumption data in a CSV file named "energy_consumption_data.csv". 
+* The CSV should have a column named "data" containing your energy consumption values.
 
-## Guida all'utilizzo
+**2. Running the Planner:**
 
-Ecco un esempio di come utilizzare SolarCalculator:
+* Modify the `house_info` and `user_preferences` dictionaries in `main.py` to match your specific house details and desired intervention type.
+
+* Run the script: `python main.py`
+
+**Example:**
 
 ```python
-from your_module import SolarCalculator
+# main.py
 
-# Dati fittizi
-dati_fittizi = {
-    "superficie": 50,
-    "località": "Roma",
-    "consumo": 8000,
-    "budget": 20000
-}
+energy_consumption_data = pd.read_csv("energy_consumption_data.csv")
+house_info = {"house_size": 150, "house_type": "single_family"}
+user_preferences = {"budget": 15000, "intervention_type": "solar_panels"}
 
-# Crea un'istanza di SolarCalculator
-calculator = SolarCalculator()
-
-# Imposta i dati
-calculator.set_data(**dati_fittizi)
-
-# Esegui il calcolo
-result = calculator.run()
-
-# Stampa i risultati
-print(result)
+green_home_planner = GreenHomePlanner(energy_consumption_data, house_info, user_preferences)
+green_home_planner.run()
 ```
 
-Questo script creerà un'istanza di SolarCalculator, immetterà i dati fittizi e calcolerà i seguenti valori:
+This will analyze your energy consumption data, suggest suitable sustainable interventions, estimate their costs and benefits, and check for available government incentives.
 
-* `cost`: il costo stimato dell'impianto fotovoltaico
-* `roi`: il ritorno sull'investimento (ROI)
-* `saving`: il risparmio economico
-* `incentives`: gli incentivi disponibili
-* `co2_saving`: la quantità di CO₂ risparmiata
+## Architecture
 
-## Architettura
+The GreenHomePlanner follows a modular architecture:
 
-SolarCalculator è progettato come una classe Python con diversi metodi per calcolare i vari aspetti di un impianto fotovoltaico.
-
-* **Classe `SolarCalculator`**:
-    * `__init__()`: inizializza l'oggetto con i dati di base.
-    * `set_data()`: imposta i dati dell'impianto fotovoltaico.
-    * `calculate_cost()`: calcola il costo stimato dell'impianto.
-    * `calculate_roi()`: calcola il ritorno sull'investimento (ROI).
-    * `calculate_saving()`: calcola il risparmio economico.
-    * `calculate_incentives()`: calcola gli incentivi disponibili.
-    * `calculate_co2_saving()`: calcola la quantità di CO₂ risparmiata.
-    * `run()`: esegue tutti i calcoli e restituisce i risultati in un dizionario.
+* **`GreenHomePlanner` Class:**
+    *  Manages the overall workflow, including data loading, analysis, intervention suggestion, cost-benefit estimation, and government incentive checks.
+* **`analyze_energy_consumption()` Method:**
+    *  Processes energy consumption data to identify patterns and potential areas for improvement.
+* **`suggest_sustainable_interventions()` Method:**
+    *  Recommends sustainable interventions based on the analyzed data and user preferences.
+* **`estimate_costs_and_benefits()` Method:**
+    *  Calculates the estimated costs and benefits of each suggested intervention.
+* **`check_government_incentives()` Method:**
+    *  Determines if any government incentives are available for the suggested interventions.
 
 ## API Reference
 
-### Classe `SolarCalculator`
+**`GreenHomePlanner` Class**
 
-* `__init__()`: Inizializza l'oggetto SolarCalculator.
-* `set_data(superficie: int, località: str, consumo: int, budget: int) -> None`: Imposta i dati dell'impianto fotovoltaico.
-* `calculate_cost() -> float`: Calcola il costo stimato dell'impianto fotovoltaico.
-* `calculate_roi() -> float`: Calcola il ritorno sull'investimento (ROI).
-* `calculate_saving() -> float`: Calcola il risparmio economico.
-* `calculate_incentives() -> float`: Calcola gli incentivi disponibili.
-* `calculate_co2_saving() -> float`: Calcola la quantità di CO₂ risparmiata.
-* `run() -> Dict[str, Any]`: Esegue tutti i calcoli e restituisce i risultati in un dizionario.
+* **`__init__(self, energy_consumption_data: pd.DataFrame, house_info: Dict[str, Any], user_preferences: Dict[str, Any])`:**
+    *  Initializes the GreenHomePlanner object with energy consumption data, house information, and user preferences.
+* **`analyze_energy_consumption(self) -> pd.DataFrame`:**
+    *  Analyzes energy consumption data to identify patterns and potential areas for improvement.
+* **`suggest_sustainable_interventions(self) -> List[Dict[str, Any]]`:**
+    *  Suggests sustainable interventions based on the analyzed data and user preferences.
+* **`estimate_costs_and_benefits(self, intervention: Dict[str, Any]) -> Dict[str, Any]`:**
+    *  Estimates the costs and benefits of a given intervention.
+* **`check_government_incentives(self, intervention: Dict[str, Any]) -> Dict[str, Any]`:**
+    *  Checks for available government incentives for a given intervention.
 
-## Guida ai test
+* **`run(self) -> None`:**
+    *  Executes the entire workflow, including data analysis, intervention suggestion, cost-benefit estimation, and incentive checking.
 
-SolarCalculator include un suite di test con pytest per garantire la corretta funzionalità del codice. Per eseguire i test:
+## Testing
+
+This project includes unit tests using the `pytest` framework.
+
+To run the tests, execute the following command in the project directory:
 
 ```bash
 pytest
 ```
 
-## Contribuzione e Licenza
+## Contributing
 
-Contribuisci al progetto SolarCalculator inviando un pull request al repository GitHub.
+Contributions are welcome!
 
-Questo progetto è rilasciato sotto la licenza MIT.
+Please follow these guidelines:
 
+* Fork the repository
+* Create a new branch for your changes
+* Write tests for your changes
+* Submit a pull request
+
+## License
+
+This project is licensed under the MIT License. See the LICENSE file for details.
 
 
 ```
