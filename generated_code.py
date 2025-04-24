@@ -1,68 +1,74 @@
-```python
+```
+import crewai
+import groq
 import logging
-import requests
-from typing import Dict, List
+from typing import Dict, Any
 
-from crewai import Agent, Task, Crew
-
-# Constants
-API_KEY = "YOUR_API_KEY"
-API_URL = "https://api.example.com"
-
-# Logging setup
 logging.basicConfig(level=logging.INFO)
 
 class SolarCalculator:
     def __init__(self):
-        self.api_key = API_KEY
-        self.api_url = API_URL
+        self.data = {
+            "superficie": 0,
+            "località": "",
+            "consumo": 0,
+            "budget": 0
+        }
 
-    def calculate_cost(self, surface: float, location: str, consumption: float, budget: float) -> Dict:
-        try:
-            # Call API to get data specific to location
-            response = requests.get(f"{self.api_url}/location/{location}", headers={"Authorization": f"Bearer {self.api_key}"})
-            location_data = response.json()
+    def set_data(self, superficie: int, località: str, consumo: int, budget: int) -> None:
+        self.data["superficie"] = superficie
+        self.data["località"] = località
+        self.data["consumo"] = consumo
+        self.data["budget"] = budget
 
-            # Calculate cost
-            cost = surface * location_data["cost_per_square_meter"]
+    def calculate_cost(self) -> float:
+        # Calcolo del costo stimato dell'impianto solare
+        cost = (self.data["consumo"] * 0.1) + (self.data["superficie"] * 0.05)
+        return cost
 
-            # Calculate ROI
-            roi = (cost - budget) / budget * 100
+    def calculate_roi(self) -> float:
+        # Calcolo del Ritorno sull'Investimento (ROI)
+        roi = (self.data["budget"] - self.data["consumo"]) / self.data["budget"]
+        return roi
 
-            # Calculate savings
-            savings = consumption * location_data["savings_per_kwh"]
+    def calculate_saving(self) -> float:
+        # Calcolo del risparmio economico
+        saving = self.data["budget"] - self.data["consumo"]
+        return saving
 
-            # Calculate CO2 emissions saved
-            co2_emissions = savings * location_data["co2_emissions_per_kwh"]
+    def calculate_incentives(self) -> float:
+        # Calcolo degli incentivi disponibili
+        incentives = self.data["budget"] * 0.1
+        return incentives
 
-            return {
-                "cost": cost,
-                "roi": roi,
-                "savings": savings,
-                "co2_emissions": co2_emissions
-            }
-        except Exception as e:
-            logging.error(f"Error calculating cost: {e}")
-            return {}
+    def calculate_co2_saving(self) -> float:
+        # Calcolo della quantità di CO₂ risparmiata
+        co2_saving = self.data["consumo"] * 0.05
+        return co2_saving
 
-    def run(self):
-        # Create UI
-        surface = float(input("Enter surface area: "))
-        location = input("Enter location: ")
-        consumption = float(input("Enter consumption: "))
-        budget = float(input("Enter budget: "))
+    def run(self) -> Dict[str, Any]:
+        self.set_data(**dati_fittizi)
+        cost = self.calculate_cost()
+        roi = self.calculate_roi()
+        saving = self.calculate_saving()
+        incentives = self.calculate_incentives()
+        co2_saving = self.calculate_co2_saving()
+        return {
+            "cost": cost,
+            "roi": roi,
+            "saving": saving,
+            "incentives": incentives,
+            "co2_saving": co2_saving
+        }
 
-        # Calculate cost
-        result = self.calculate_cost(surface, location, consumption, budget)
+dati_fittizi = {
+    "superficie": 50,
+    "località": "Roma",
+    "consumo": 8000,
+    "budget": 20000
+}
 
-        # Display results
-        print("Cost:", result["cost"])
-        print("ROI:", result["roi"])
-        print("Savings:", result["savings"])
-        print("CO2 Emissions Saved:", result["co2_emissions"])
-
-if __name__ == "__main__":
-    calculator = SolarCalculator()
-    calculator.run()
+calculator = SolarCalculator()
+result = calculator.run()
+print(result)
 ```
-This code defines a `SolarCalculator` class that calculates the cost of a solar panel installation based on the input parameters. It uses the `requests` library to call an API to get data specific to the location, and then calculates the cost, ROI, savings, and CO2 emissions saved. The code also includes error handling and logging.
