@@ -1,58 +1,82 @@
 ```markdown
-# CrewAI_Agent: A Modular Conversational AI Agent
+# CodeWriterAgent: Un agente CrewAI per la generazione di codice Python
 
-This repository contains the implementation of `CrewAI_Agent`, a  conversational AI agent built upon the foundation of fine-tuned T5 (Text-to-Text Transfer Transformer) models. 
+Questo documento spiega come utilizzare l'agente CodeWriterAgent per generare codice Python in risposta a prompt.
 
-**Motivation:**
+## Cos'è CodeWriterAgent
 
-CrewAI_Agent is designed to be a versatile and customizable framework for building conversational agents.  
+CodeWriterAgent è un agente multi-agente che utilizza un modello linguistico di grandi dimensioni (LLM) per generare codice Python basato su prompt.
 
-**Key Features:**
+**Utilizzo**
 
-* **Modular Architecture:** The agent is built with a clear separation of concerns, allowing for easy integration and customization of different components, such as the transformer model, tokenizer, and training dataset.
-* **Fine-Tuned Transformers:** Leverages the power of pre-trained T5 models, adapted and fine-tuned for specific conversational tasks.
-* **Beam Search Decoding:** Employs beam search for generating coherent and contextually relevant responses.
-* **On-the-Fly Training:** Enables incremental learning and improvement through online training on new experiences.
-* **Model Persistence:** Provides functionalities for saving and loading trained models, facilitating model sharing and reuse.
+Per utilizzare l'agente CodeWriterAgent, procedi come segue:
 
-**Installation:**
+1. **Installa le dipendenze**
 
-Ensure you have Python 3.7 or higher and the following libraries installed:
+   ```
+   pip install crewai llm
+   ```
 
-```bash
-pip install torch transformers
-```
+2. **Crea un agente**
 
-**Usage:**
+   ```python
+   from crewai import Agent, Task, Crew
+   from your_module import CodeWriterAgent, create_agents  # Sostituisci 'your_module' con il nome del modulo
+
+   
+   llm1 = llm.load("gpt-3.5-turbo")
+   llm2 = llm.load("gpt-3.5-turbo")
+   agent = create_agents(llm1, llm2)[0]
+   ```
+
+3. **Definisci un compito**
+
+   ```python
+   task = Task(description="Scrivere codice Python per un agente basato su prompt ottimizzato", agent=agent)
+   ```
+
+4. **Avvia la Crew**
+
+   ```python
+   crew = Crew(tasks=[task])
+   crew.kickoff()
+   ```
+
+**Esempio:**
 
 ```python
-from your_module import CrewAI_Agent, create_agent
-from transformers import AutoModelForSequenceToSequence, AutoTokenizer
+# Crea un agente
+agent = create_agents(llm1, llm2)[0]
 
-# 1. Create an Agent Instance
-agent = create_agent("gpt2", "t5-small")  # Replace with desired model names
+# Definisci un compito
+task = Task(description="Scrivere funzione Python che somma due numeri", agent=agent)
 
-# 2. Generate a Response
-response = agent.generate_response("Hello, how are you?")
-print(response)
-
-# 3. Train the Agent on Experience Data
-experience = [
-    {"input_text": "Hello", "target_text": "Hi"},
-    # Add more training examples here
-]
-agent.train_on_experience(experience)
-
-# 4. Save and Load Models 
-agent.save_model("my_trained_agent.pth")  
-another_agent = create_agent("gpt2", "t5-small")
-another_agent.load_model("my_trained_agent.pth") 
+# Avvia la Crew
+crew = Crew(tasks=[task])
+crew.kickoff()
 ```
 
-**Testing:**
+**Documentazione aggiuntiva**
 
-```bash
-python -m unittest your_module_test.py 
+Per maggiori informazioni sull'architettura degli agenti CrewAI, consulta la documentazione ufficiale [https://crew-ai.io/docs/](https://crew-ai.io/docs/).
+
+## Test
+
+```python
+import unittest
+from unittest.mock import Mock
+from your_module import CodeWriterAgent, create_agents
+
+class TestCodeWriterAgent(unittest.TestCase):
+    def test_code_generator_import(self):
+        agent = CodeWriterAgent(role="Test", goal="Test", backstory="Test", llm=Mock())
+        prompt = "import random"
+        expected_code = "import random\n"
+        self.assertEqual(agent.code_generator(prompt), expected_code)
+    # ... altri test ...
+
+if __name__ == "__main__":
+    unittest.main()
 ```
 
 
