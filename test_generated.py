@@ -1,113 +1,144 @@
-Ecco i test unitari per il codice Python fornito. Questi test verificano il corretto funzionamento di ciascuna classe e metodo:
-
 ```python
 import pytest
-from unittest.mock import patch
-from your_module import (  # Sostituire con il nome del modulo reale
-    DocumentAgent,
-    PreprocessingAgent,
-    NamedEntityRecognitionAgent,
-    KeywordExtractionAgent,
-    CoordinatorAgent,
-    ResultVisualizerAgent,
+from unittest.mock import patch, Mock
+from your_module import (  # Replace 'your_module' with the actual module name
+    GroqLLM,
     create_agents,
-    kick_off_agents
+    GitHubUploaderAgent,
+    run_pipeline
 )
 
 @pytest.fixture
-def mock_document():
-    return "sample.pdf"
+def mock_llm():
+    llm = Mock(spec=GroqLLM)
+    llm._call.return_value = "Test response"
+    return llm
 
 @pytest.fixture
-def mock_text():
-    return "Questo è un test di esempio."
+def mock_github():
+    with patch("github.Github") as mock_github:
+        yield mock_github
 
 @pytest.fixture
-def mock_doc_with_numbers():
-    return "Il numero 123.45 è presente nel testo."
+def mock_requests_post():
+    with patch("requests.post") as mock_post:
+        yield mock_post
 
 @pytest.fixture
-def mock_empty_document():
-    return ""
+def mock_temp_dir():
+    with patch("tempfile.mkdtemp") as mock_temp:
+        yield mock_temp
 
-def test_document_agent_process(mock_document, mock_text):
-    with patch('pdf2text.extract_text', return_value=mock_text) as mock_extract:
-        agent = DocumentAgent(mock_document)
-        result = agent.process()
-        assert 'text' in result
-        assert result['text'] == mock_text
-        mock_extract.assert_called_once()
+@pytest.fixture
+def mock_zipfile():
+    with patch("zipfile.ZipFile") as mock_zip:
+        yield mock_zip
 
-def test_document_agent_clean_numbers(mock_document, mock_doc_with_numbers, mock_text):
-    clean_text = re.sub(r'\d+\.\d+|\d+\.+\d+', '', mock_doc_with_numbers)
-    with patch('pdf2text.extract_text', return_value=mock_doc_with_numbers) as mock_extract:
-        agent = DocumentAgent(mock_document)
-        result = agent.process()
-        assert 'text' in result
-        assert result['text'] == clean_text
-        mock_extract.assert_called_once()
-
-def test_preprocessing_agent_process(mock_document, mock_text):
-    with patch('pdf2text.extract_text', return_value=mock_text) as mock_extract:
-        agent = DocumentAgent(mock_document)
-        doc_info = agent.process()
+class TestGroqLLM:
+    def test__call(self, mock_requests_post):
+        llm = GroqLLM("test_model", "test_key")
+        response = Mock()
+        response.json.return_value = {"choices": [{"message": {"content": "test"}}]}
+        mock_requests_post.return_value = response
         
-        preprocessing_agent = PreprocessingAgent(doc_info)
-        result = preprocessing_agent.process()
+        result = llm._call("test prompt")
+        assert result == "test"
         
-        assert 'tokens' in result
-        assert isinstance(result['tokens'], list)
-        assert all(isinstance(token, tuple) and len(token) == 2 for token in result['tokens'])
-
-def test_named_entity_recognition_agent_process(mock_document, mock_text):
-    with patch('pdf2text.extract_text', return_value=mock_text) as mock_extract:
-        agent = DocumentAgent(mock_document)
-        doc_info = agent.process()
+        # Verify the request was made correctly
+        mock_requests_post.assert_called_once_with(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={
+                "Authorization": "Bearer test_key",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "test_model",
+                "messages": [{"role": "user", "content": "test prompt"}],
+                "temperature": 0.7
+            }
+        )
         
-        ner_agent = NamedEntityRecognitionAgent(doc_info)
-        result = ner_agent.process()
+    def test__call_raises_exception(self, mock_requests_post):
+        llm = GroqLLM("test_model", "test_key")
+        mock_response = Mock()
+        mock_response.raise_for_status.side_effect = Exception("Test error")
+        mock_requests_post.return_value = mock_response
         
-        assert 'entities' in result
-        assert isinstance(result['entities'], list)
-        assert all(isinstance(entity, tuple) and len(entity) == 2 for entity in result['entities'])
+        with pytest.raises(Exception):
+            llm._call("test prompt")
 
-def test_keyword_extraction_agent_process(mock_document, mock_text):
-    with patch('pdf2text.extract_text', return_value=mock_text) as mock_extract:
-        agent = DocumentAgent(mock_document)
-        doc_info = agent.process()
+class TestCreateAgents:
+    def test_create_agents(self, mock_llm):
+        llm1 = Mock()
+        llm2 = Mock()
+        llm3 = Mock()
+        llm4 = Mock()
         
-        keyword_agent = KeywordExtractionAgent(doc_info)
-        result = keyword_agent.process()
+        prompt_writer, code_writer, code_tester, doc_writer = create_agents(llm1, llm2, llm3, llm4)
         
-        assert 'keywords' in result
-        assert isinstance(result['keywords'], list)
-        assert all(isinstance(keyword, str) for keyword in result['keywords'])
+        # Verify all agents are created with correct parameters
+        assert prompt_writer.role == "Prompt Writer"
+        assert code_writer.role == "Code Writer"
+        assert code_tester.role == "Tester"
+        assert doc_writer.role == "Doc Writer"
 
-def test_coordinator_agent_process():
-    agent = CoordinatorAgent()
-    agent.documents = [{"text": "doc1"}, {"text": "doc2"}]
-    result = agent.process()
-    assert result == agent.documents
+class TestGitHubUploaderAgent:
+    def test_upload_files(self, mock_github, mock_temp_dir, mock_zipfile):
+        # Setup mock directory and files
+        mock_temp_dir.return_value = "test_dir"
+        test_file = "test_file.py"
+        test_content = "test_content"
+        
+        # Create the uploader
+        uploader = GitHubUploaderAgent("test_key", "test_repo", "test_dir")
+        
+        # Mock the file reading
+        with patch("builtins.open", new=Mock()) as mock_open:
+            mock_file = Mock()
+            mock_file.read.return_value = test_content
+            mock_open.return_value.__enter__.return_value = mock_file
+            
+            # Call upload files
+            uploader.upload_files()
+            
+            # Verify files are uploaded
+            uploader.repo.create_file.assert_called_with(test_file, "Caricamento file", test_content)
+            
+    def test_ignore_non_text_files(self, mock_github, mock_temp_dir):
+        # Setup mock directory and files
+        mock_temp_dir.return_value = "test_dir"
+        
+        # Create the uploader
+        uploader = GitHubUploaderAgent("test_key", "test_repo", "test_dir")
+        
+        # Test that non-text files are ignored
+        uploader.upload_files()
+        
+        # Verify that create_file was not called for non-text files
+        uploader.repo.create_file.assert_not_called()
 
-def test_result_visualizer_agent_process():
-    documents = [{"text": "doc1", "tokens": [], "entities": [], "keywords": []},
-                {"text": "doc2", "tokens": [], "entities": [], "keywords": []}]
-    agent = ResultVisualizerAgent(documents)
-    result = agent.process()
-    assert result is None
-
-def test_create_agents(mock_document):
-    agents = create_agents([mock_document])
-    assert len(agents) == 6  # 4 process agents + Coordinator + Visualizer
-
-def test_kick_off_agents(mock_document):
-    agents = create_agents([mock_document])
-    result = kick_off_agents(agents)
-    assert result is None
-
-def test_empty_document_agent_process(mock_empty_document):
-    agent = DocumentAgent(mock_empty_document)
-    result = agent.process()
-    assert 'text' in result
-    assert result['text'] == ""
+class TestRunPipeline:
+    def test_run_pipeline(self, mock_llm, mock_github, mock_temp_dir, mock_zipfile, mock_requests_post):
+        # Mock all dependencies
+        llm1 = Mock()
+        llm2 = Mock()
+        llm3 = Mock()
+        llm4 = Mock()
+        
+        # Run the pipeline
+        optimized_prompt, generated_code, generated_tests, generated_docs, zip_path = run_pipeline("test_prompt")
+        
+        # Verify that all components are called
+        llm1._call.assert_called_once()
+        llm2._call.assert_called_once()
+        llm3._call.assert_called_once()
+        llm4._call.assert_called_once()
+        
+        # Verify that files are created and uploaded
+        assert zip_path.endswith("generated_package.zip")
+        # Add more assertions as needed
+        
+        # Verify that GitHub upload was called
+        uploader = GitHubUploaderAgent("test_key", "test_repo", "test_dir")
+        uploader.upload_files.assert_called_once()
 ```
