@@ -1,81 +1,160 @@
-Your final answer must be the great and the most complete as possible, it must be outcome described.
-
 ```python
 import pytest
-from unittest.mock import Mock, patch
-from typing import Dict, List
-from your_module import (  # Import the actual module name
-    SustainableHomeAgent,
-    create_agents,
-    main
-)
+from unittest.mock import patch, MagicMock
+import logging
+from your_module import SolarCalculator  # Replace with actual module name
 
 @pytest.fixture
-def mock_llm():
-    llm_mock = Mock(spec=aiplatform.LLM)
-    return llm_mock
+def mock_api_key():
+    return "TEST_API_KEY"
 
 @pytest.fixture
-def mock_agent(mock_llm):
-    return SustainableHomeAgent(llm=mock_llm)
+def mock_api_url():
+    return "https://test.api.com"
 
-def test_collect_data(mock_agent):
-    """Test that collect_data returns a dictionary"""
-    result = mock_agent.collect_data()
-    assert isinstance(result, Dict)
-    assert result is not None
+@pytest.fixture
+def mock_location_data():
+    return {
+        "cost_per_square_meter": 100.0,
+        "savings_per_kwh": 0.5,
+        "co2_emissions_per_kwh": 0.2
+    }
 
-def test_analyze_data(mock_agent, mock_llm):
-    """Test that analyze_data calls LLM and returns recommendations"""
-    test_data = {"key": "value"}
-    mock_response = {"recommendation1": "details1", "recommendation2": "details2"}
-    mock_llm.analyze.return_value = mock_response
-    
-    result = mock_agent.analyze_data(test_data)
-    
-    mock_llm.analyze.assert_called_once_with(test_data)
-    assert isinstance(result, Dict)
-    assert result == mock_response
+@pytest.fixture
+def mock_response(mock_location_data):
+    response = MagicMock()
+    response.json.return_value = mock_location_data
+    return response
 
-def test_generate_recommendations(mock_agent):
-    """Test that generate_recommendations formats recommendations correctly"""
-    test_recommendations = {"rec1": "detail1", "rec2": "detail2"}
-    expected_output = ["Recommendation: rec1", "Recommendation: rec2"]
-    
-    result = mock_agent.generate_recommendations(test_recommendations)
-    
-    assert isinstance(result, List)
-    assert result == expected_output
+@pytest.fixture
+def solar_calculator(mock_api_key, mock_api_url):
+    return SolarCalculator()
 
-def test_provide_recommendations(mock_agent, capsys):
-    """Test that provide_recommendations prints recommendations correctly"""
-    test_recommendations = ["Recommendation: rec1", "Recommendation: rec2"]
-    
-    mock_agent.provide_recommendations(test_recommendations)
-    
-    captured = capsys.readouterr()
-    assert "Recommendations:" in captured.out
-    assert "Recommendation: rec1" in captured.out
-    assert "Recommendation: rec2" in captured.out
+def test_calculate_cost_normal_input(solar_calculator, mock_api_key, mock_api_url, mock_location_data, mock_response):
+    """
+    Test calculate_cost with normal input values.
+    """
+    with patch('requests.get', return_value=mock_response) as mock_get:
+        surface = 10.0
+        location = "Test Location"
+        consumption = 1000.0
+        budget = 10000.0
+        
+        result = solar_calculator.calculate_cost(surface, location, consumption, budget)
+        
+        assert result == {
+            "cost": 1000.0,
+            "roi": (1000 - 10000)/10000 * 100,
+            "savings": 500.0,
+            "co2_emissions": 100.0
+        }
+        mock_get.assert_called_once_with(
+            f"{mock_api_url}/location/Test%20Location",
+            headers={"Authorization": f"Bearer {mock_api_key}"}
+        )
 
-def test_monitor_and_update(mock_agent):
-    """Test that monitor_and_update does not throw errors"""
-    mock_agent.monitor_and_update()
-    # Add more specific assertions if monitor_and_update has specific behavior
+def test_calculate_cost_zero_surface(solar_calculator, mock_api_key, mock_api_url, mock_location_data, mock_response):
+    """
+    Test calculate_cost with zero surface area.
+    """
+    with patch('requests.get', return_value=mock_response) as mock_get:
+        surface = 0.0
+        location = "Test Location"
+        consumption = 1000.0
+        budget = 10000.0
+        
+        result = solar_calculator.calculate_cost(surface, location, consumption, budget)
+        
+        assert result == {
+            "cost": 0.0,
+            "roi": (0 - 10000)/10000 * 100,
+            "savings": 500.0,
+            "co2_emissions": 100.0
+        }
+        mock_get.assert_called_once_with(
+            f"{mock_api_url}/location/Test%20Location",
+            headers={"Authorization": f"Bearer {mock_api_key}"}
+        )
 
-def test_create_agents(mock_llm):
-    """Test that create_agents creates the correct number of agents"""
-    llm_list = [mock_llm]
-    crew = create_agents(llms=llm_list)
-    
-    assert len(crew.agents) == 1
-    assert isinstance(crew.agents[0], SustainableHomeAgent)
+def test_calculate_cost_negative_budget(solar_calculator, mock_api_key, mock_api_url, mock_location_data, mock_response):
+    """
+    Test calculate_cost with negative budget.
+    """
+    with patch('requests.get', return_value=mock_response) as mock_get:
+        surface = 10.0
+        location = "Test Location"
+        consumption = 1000.0
+        budget = -10000.0
+        
+        result = solar_calculator.calculate_cost(surface, location, consumption, budget)
+        
+        assert result == {
+            "cost": 1000.0,
+            "roi": (1000 - (-10000))/(-10000) * 100,
+            "savings": 500.0,
+            "co2_emissions": 100.0
+        }
+        mock_get.assert_called_once_with(
+            f"{mock_api_url}/location/Test%20Location",
+            headers={"Authorization": f"Bearer {mock_api_key}"}
+        )
 
-def test_main(mock_llm):
-    """Test that main function initializes and kicks off the crew"""
-    with patch("your_module.Crew") as mock_crew_class:
-        main()
-        mock_crew_class.assert_called_once_with(agents=[SustainableHomeAgent(mock_llm)])
-        mock_crew_instance = mock_crew_class.return_value
-        mock_crew_instance.kickoff.assert_called_once()
+def test_calculate_cost_invalid_location(solar_calculator, mock_api_key, mock_api_url):
+    """
+    Test calculate_cost with invalid location that returns empty data.
+    """
+    with patch('requests.get', return_value=MagicMock(json=MagicMock(side_effect=KeyError))) as mock_get:
+        surface = 10.0
+        location = "Invalid Location"
+        consumption = 1000.0
+        budget = 10000.0
+        
+        result = solar_calculator.calculate_cost(surface, location, consumption, budget)
+        
+        assert result == {}
+        mock_get.assert_called_once_with(
+            f"{mock_api_url}/location/Invalid%20Location",
+            headers={"Authorization": f"Bearer {mock_api_key}"}
+        )
+
+def test_calculate_cost_api_failure(solar_calculator, mock_api_key, mock_api_url):
+    """
+    Test calculate_cost when API call fails.
+    """
+    with patch('requests.get', side_effect=Exception("API Error")) as mock_get:
+        surface = 10.0
+        location = "Test Location"
+        consumption = 1000.0
+        budget = 10000.0
+        
+        result = solar_calculator.calculate_cost(surface, location, consumption, budget)
+        
+        assert result == {}
+        mock_get.assert_called_once_with(
+            f"{mock_api_url}/location/Test%20Location",
+            headers={"Authorization": f"Bearer {mock_api_key}"}
+        )
+
+def test_run_method(solar_calculator, mock_api_key, mock_api_url, mock_location_data, mock_response):
+    """
+    Test run method with mocked user input.
+    """
+    with patch('builtins.input', side_effect=["10.0", "Test Location", "1000.0", "10000.0"]), \
+         patch('requests.get', return_value=mock_response):
+        
+        solar_calculator.run()
+        
+        # Verify calculate_cost was called with correct arguments
+        solar_calculator.calculate_cost.assert_called_once_with(10.0, "Test Location", 1000.0, 10000.0)
+
+def test_logging_error_on_api_failure(solar_calculator, mock_api_key, mock_api_url):
+    """
+    Test logging when API call fails.
+    """
+    with patch('requests.get', side_effect=Exception("API Error")), \
+         patch('logging.error') as mock_logging_error:
+        
+        solar_calculator.calculate_cost(10.0, "Test Location", 1000.0, 10000.0)
+        
+        mock_logging_error.assert_called_once_with("Error calculating cost: API Error")
 ```
