@@ -1,46 +1,59 @@
-# CrewAI Multi-Agent Generator
+```markdown
+# CrewAI_Agent: A Modular Conversational AI Agent
 
-## 🤖  CrewAI Multi-Agent Code Generator
+This repository contains the implementation of `CrewAI_Agent`, a  conversational AI agent built upon the foundation of fine-tuned T5 (Text-to-Text Transfer Transformer) models. 
 
-Questo documento descrive la creazione di un'applicazione open-source multi-agent basata su CrewAI per generare codice Python completo, test unitari e documentazione tecnica.
+**Motivation:**
 
-### Descrizione del progetto
+CrewAI_Agent is designed to be a versatile and customizable framework for building conversational agents.  
 
-Questo progetto dimostra l'utilizzo di CrewAI per automatizzare l'elaborazione di richieste complesse e generare automaticamente un agente completo, composto da:
+**Key Features:**
 
-* **Prompt Writer**: Ottimizza le richieste per ottenere risposte accurati dagli agenti di CrewAI.
-* **Code Writer**: Scrive codice Python funzionante basato sul prompt ottimizzato.
-* **Code Tester**: Crea test unitari per il codice generato.
-* **Doc Writer**: Genera la documentazione in formato markdown per il codice e i test.
+* **Modular Architecture:** The agent is built with a clear separation of concerns, allowing for easy integration and customization of different components, such as the transformer model, tokenizer, and training dataset.
+* **Fine-Tuned Transformers:** Leverages the power of pre-trained T5 models, adapted and fine-tuned for specific conversational tasks.
+* **Beam Search Decoding:** Employs beam search for generating coherent and contextually relevant responses.
+* **On-the-Fly Training:** Enables incremental learning and improvement through online training on new experiences.
+* **Model Persistence:** Provides functionalities for saving and loading trained models, facilitating model sharing and reuse.
 
-## Utilizzo
+**Installation:**
 
-La creazioni di un nuovo agente multi-agent completa
+Ensure you have Python 3.7 or higher and the following libraries installed:
 
-1. La richiesta viene immessa tramite un'interfaccia utente.
+```bash
+pip install torch transformers
+```
 
-2. L'agente Prompt Writer ottimizza la richiesta per ottenere il miglior output da un modello linguistico di grandi dimensioni (LLM) come Groq.
+**Usage:**
 
-3. L'agente Code Writer utilizza il prompt ottimizzato per generare codice Python funzionante.
+```python
+from your_module import CrewAI_Agent, create_agent
+from transformers import AutoModelForSequenceToSequence, AutoTokenizer
 
-4. L'agente Code Tester crea test unitari per assicurarsi che il codice funzioni correttamente.
+# 1. Create an Agent Instance
+agent = create_agent("gpt2", "t5-small")  # Replace with desired model names
 
-5. L'agente Doc Writer genera la documentazione tecnica in markdown per il codice e i test unitari.
+# 2. Generate a Response
+response = agent.generate_response("Hello, how are you?")
+print(response)
 
-6. Il codice, i test e la documentazione vengono raccolti in un pacchetto ZIP che può essere scaricato dall'utente.
+# 3. Train the Agent on Experience Data
+experience = [
+    {"input_text": "Hello", "target_text": "Hi"},
+    # Add more training examples here
+]
+agent.train_on_experience(experience)
+
+# 4. Save and Load Models 
+agent.save_model("my_trained_agent.pth")  
+another_agent = create_agent("gpt2", "t5-small")
+another_agent.load_model("my_trained_agent.pth") 
+```
+
+**Testing:**
+
+```bash
+python -m unittest your_module_test.py 
+```
 
 
-
-## Applicazioni
-
-Questo progetto può essere utile per:
-
-* **Sviluppatori** che desiderano automatizzare la generazione di codice Python basato su richieste testuali.
-* **Dataset generation**: Creare codice Python per specifiche attività e generatori di dataset.
-* **Esempio**: Automazione di task ricorrenti.
-
-
-
-## Contribuire
-
-Questo progetto è open-source e i contributi sono benvenuti. Per contribuire, fork di questo repository e invia una pull request.
+```
