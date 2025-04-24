@@ -1,0 +1,4 @@
+crewai>=0.28.0
+requests>=2.31.0
+PyGithub>=2.1.1
+pytest>=7.3.1
