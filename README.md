@@ -1,49 +1,41 @@
-# Multi-Agent System Documentation
+# Pipeline per l'Analisi di Documenti
 
-This directory contains the source code and documentation for a multi-agent system.
+Questo repository contiene un semplice pipeline per l'analisi di documenti PDF. Utilizza diversi agenti in sequenza per estrarre informazioni chiave da un documento, tra cui il testo, i token, le entità nominate e le parole chiave.
 
-## Overview
+## Come funziona il pipeline
 
-The multi-agent system consists of multiple independent agents that can interact with each other. Each agent has its own state and can send and receive messages to other agents. Agents can update their state based on incoming messages and their own internal logic.
+Il pipeline è costituito da diverse classi-agenti, ognuna responsabile di un compito specifico:
 
-## Components
+* **DocumentAgent**: Esegue l'estrazione del testo da un documento PDF .pdf2text e rimuove numeri decimali dal testo. 
 
-* **Agent:**
-    * Represents a single agent in the system.
-    * Has an identifier (ID), a state, and methods for sending and receiving messages.
-    * Can update its state based on messages and internal logic.
+* **PreprocessingAgent**: Impiega il modello linguistico spaCy per tokenizzare il testo e determinare la parte del discorso di ogni token.
 
-## Usage
+* **NamedEntityRecognitionAgent**: Utilizza spaCy per identificare entità nominate nel testo, come persone, luoghi e organizzazioni.
 
-To run the multi-agent system, follow these steps:
+* **KeywordExtractionAgent**:  Estrae le parole chiave dal testo utilizzando la frequenza di occorrenza dei token. Le parole chiave sono ordinate in modo decrescente in base alla loro frequenza.
 
-1. Install the required dependencies (see `requirements.txt`).
-2. Create instances of the `Agent` class, providing unique IDs for each agent.
-3. Implement agent behavior by defining the logic within the `__init__` method of each agent's class.
-4. Agents can then communicate by sending and receiving messages using the `send_message` and `receive_message` methods.
-5. Agents can update their state using the `update_state` method.
+* **CoordinatorAgent**: Gestisce la sequenza degli agenti, trasmettendo il risultato di un agente all'agente successivo.
 
-## Example
+* **ResultVisualizerAgent**: Visualizza i risultati ottenuti dai diversi agenti, stampando il testo, i token, le entità nominate e le parole chiave per ogni documento.
 
-```python
-# Example usage
-from agent import Agent
+## Utilizzo
 
-# Create two agents
-agent1 = Agent("agent1")
-agent2 = Agent("agent2")
+1. **Installazione**: Assicurarsi di avere installato le librerie necessarie: `pdf2text`, `spacy`, `networkx`, `matplotlib`.
+2. **Carica il documento**: Crea una lista di percorsi dei documenti PDF da analizzare.
+3. **Crea gli agenti**: Utilizza la funzione `create_agents()` per creare gli agenti necessari per il pipeline.
+4. **Avvia il pipeline**: Chiama la funzione `kick_off_agents()` per eseguire il pipeline.
 
-# Send a message from agent1 to agent2
-agent1.send_message("agent2", "Hello from agent1!")
+## Esempio
 
-# Agent2 receives the message
-agent2.receive_message("agent1", "Hello from agent1!")
+```
+documents = ['document1.pdf', 'document2.pdf']
+agents = create_agents(documents)
+kick_off_agents(agents)
 ```
 
-## Testing
 
-The `test_agent_methods.py` file contains unit tests for the `Agent` class. To run the tests, execute the following command:
 
-```bash
-python -m unittest tests/test_agent_methods.py
-```
+## Prossimi passi
+
+* **Integrazione con grafici**: visualizzare le relazioni tra le entità nominate utilizzando grafici.
+* **Impostazioni personalizzabili**: consentire all'utente di personalizzare il pipeline, ad esempio aggiungendo o rimuovendo agenti.
