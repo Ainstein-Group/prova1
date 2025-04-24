@@ -1,41 +1,46 @@
-# Pipeline per l'Analisi di Documenti
+# CrewAI Multi-Agent Generator
 
-Questo repository contiene un semplice pipeline per l'analisi di documenti PDF. Utilizza diversi agenti in sequenza per estrarre informazioni chiave da un documento, tra cui il testo, i token, le entità nominate e le parole chiave.
+## 🤖  CrewAI Multi-Agent Code Generator
 
-## Come funziona il pipeline
+Questo documento descrive la creazione di un'applicazione open-source multi-agent basata su CrewAI per generare codice Python completo, test unitari e documentazione tecnica.
 
-Il pipeline è costituito da diverse classi-agenti, ognuna responsabile di un compito specifico:
+### Descrizione del progetto
 
-* **DocumentAgent**: Esegue l'estrazione del testo da un documento PDF .pdf2text e rimuove numeri decimali dal testo. 
+Questo progetto dimostra l'utilizzo di CrewAI per automatizzare l'elaborazione di richieste complesse e generare automaticamente un agente completo, composto da:
 
-* **PreprocessingAgent**: Impiega il modello linguistico spaCy per tokenizzare il testo e determinare la parte del discorso di ogni token.
-
-* **NamedEntityRecognitionAgent**: Utilizza spaCy per identificare entità nominate nel testo, come persone, luoghi e organizzazioni.
-
-* **KeywordExtractionAgent**:  Estrae le parole chiave dal testo utilizzando la frequenza di occorrenza dei token. Le parole chiave sono ordinate in modo decrescente in base alla loro frequenza.
-
-* **CoordinatorAgent**: Gestisce la sequenza degli agenti, trasmettendo il risultato di un agente all'agente successivo.
-
-* **ResultVisualizerAgent**: Visualizza i risultati ottenuti dai diversi agenti, stampando il testo, i token, le entità nominate e le parole chiave per ogni documento.
+* **Prompt Writer**: Ottimizza le richieste per ottenere risposte accurati dagli agenti di CrewAI.
+* **Code Writer**: Scrive codice Python funzionante basato sul prompt ottimizzato.
+* **Code Tester**: Crea test unitari per il codice generato.
+* **Doc Writer**: Genera la documentazione in formato markdown per il codice e i test.
 
 ## Utilizzo
 
-1. **Installazione**: Assicurarsi di avere installato le librerie necessarie: `pdf2text`, `spacy`, `networkx`, `matplotlib`.
-2. **Carica il documento**: Crea una lista di percorsi dei documenti PDF da analizzare.
-3. **Crea gli agenti**: Utilizza la funzione `create_agents()` per creare gli agenti necessari per il pipeline.
-4. **Avvia il pipeline**: Chiama la funzione `kick_off_agents()` per eseguire il pipeline.
+La creazioni di un nuovo agente multi-agent completa
 
-## Esempio
+1. La richiesta viene immessa tramite un'interfaccia utente.
 
-```
-documents = ['document1.pdf', 'document2.pdf']
-agents = create_agents(documents)
-kick_off_agents(agents)
-```
+2. L'agente Prompt Writer ottimizza la richiesta per ottenere il miglior output da un modello linguistico di grandi dimensioni (LLM) come Groq.
+
+3. L'agente Code Writer utilizza il prompt ottimizzato per generare codice Python funzionante.
+
+4. L'agente Code Tester crea test unitari per assicurarsi che il codice funzioni correttamente.
+
+5. L'agente Doc Writer genera la documentazione tecnica in markdown per il codice e i test unitari.
+
+6. Il codice, i test e la documentazione vengono raccolti in un pacchetto ZIP che può essere scaricato dall'utente.
 
 
 
-## Prossimi passi
+## Applicazioni
 
-* **Integrazione con grafici**: visualizzare le relazioni tra le entità nominate utilizzando grafici.
-* **Impostazioni personalizzabili**: consentire all'utente di personalizzare il pipeline, ad esempio aggiungendo o rimuovendo agenti.
+Questo progetto può essere utile per:
+
+* **Sviluppatori** che desiderano automatizzare la generazione di codice Python basato su richieste testuali.
+* **Dataset generation**: Creare codice Python per specifiche attività e generatori di dataset.
+* **Esempio**: Automazione di task ricorrenti.
+
+
+
+## Contribuire
+
+Questo progetto è open-source e i contributi sono benvenuti. Per contribuire, fork di questo repository e invia una pull request.
