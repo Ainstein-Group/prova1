@@ -1,160 +1,103 @@
+Your final answer must be the great and the most complete as possible, it must be outcome described.
+
 ```python
 import pytest
-from unittest.mock import patch, MagicMock
-import logging
-from your_module import SolarCalculator  # Replace with actual module name
+from unittest.mock import patch
+from your_module import SolarCalculator  # Sostituire con il nome del modulo reale
 
 @pytest.fixture
-def mock_api_key():
-    return "TEST_API_KEY"
-
-@pytest.fixture
-def mock_api_url():
-    return "https://test.api.com"
-
-@pytest.fixture
-def mock_location_data():
+def mock_data():
     return {
-        "cost_per_square_meter": 100.0,
-        "savings_per_kwh": 0.5,
-        "co2_emissions_per_kwh": 0.2
+        "superficie": 50,
+        "località": "Roma",
+        "consumo": 8000,
+        "budget": 20000
     }
 
-@pytest.fixture
-def mock_response(mock_location_data):
-    response = MagicMock()
-    response.json.return_value = mock_location_data
-    return response
+def test_init():
+    """Test che verifica l'inizializzazione corretta dell'oggetto SolarCalculator."""
+    calculator = SolarCalculator()
+    assert calculator.data == {
+        "superficie": 0,
+        "località": "",
+        "consumo": 0,
+        "budget": 0
+    }
 
-@pytest.fixture
-def solar_calculator(mock_api_key, mock_api_url):
-    return SolarCalculator()
+def test_set_data(mock_data):
+    """Test che verifica l'impostazione corretta dei dati."""
+    calculator = SolarCalculator()
+    calculator.set_data(**mock_data)
+    assert calculator.data == mock_data
 
-def test_calculate_cost_normal_input(solar_calculator, mock_api_key, mock_api_url, mock_location_data, mock_response):
-    """
-    Test calculate_cost with normal input values.
-    """
-    with patch('requests.get', return_value=mock_response) as mock_get:
-        surface = 10.0
-        location = "Test Location"
-        consumption = 1000.0
-        budget = 10000.0
-        
-        result = solar_calculator.calculate_cost(surface, location, consumption, budget)
-        
-        assert result == {
-            "cost": 1000.0,
-            "roi": (1000 - 10000)/10000 * 100,
-            "savings": 500.0,
-            "co2_emissions": 100.0
-        }
-        mock_get.assert_called_once_with(
-            f"{mock_api_url}/location/Test%20Location",
-            headers={"Authorization": f"Bearer {mock_api_key}"}
-        )
+def test_calculate_cost(mock_data):
+    """Test che verifica il calcolo corretto del costo."""
+    calculator = SolarCalculator()
+    calculator.set_data(**mock_data)
+    expected_cost = (mock_data["consumo"] * 0.1) + (mock_data["superficie"] * 0.05)
+    assert calculator.calculate_cost() == expected_cost
 
-def test_calculate_cost_zero_surface(solar_calculator, mock_api_key, mock_api_url, mock_location_data, mock_response):
-    """
-    Test calculate_cost with zero surface area.
-    """
-    with patch('requests.get', return_value=mock_response) as mock_get:
-        surface = 0.0
-        location = "Test Location"
-        consumption = 1000.0
-        budget = 10000.0
-        
-        result = solar_calculator.calculate_cost(surface, location, consumption, budget)
-        
-        assert result == {
-            "cost": 0.0,
-            "roi": (0 - 10000)/10000 * 100,
-            "savings": 500.0,
-            "co2_emissions": 100.0
-        }
-        mock_get.assert_called_once_with(
-            f"{mock_api_url}/location/Test%20Location",
-            headers={"Authorization": f"Bearer {mock_api_key}"}
-        )
+def test_calculate_roi(mock_data):
+    """Test che verifica il calcolo corretto del ROI."""
+    calculator = SolarCalculator()
+    calculator.set_data(**mock_data)
+    expected_roi = (mock_data["budget"] - mock_data["consumo"]) / mock_data["budget"]
+    assert calculator.calculate_roi() == expected_roi
 
-def test_calculate_cost_negative_budget(solar_calculator, mock_api_key, mock_api_url, mock_location_data, mock_response):
-    """
-    Test calculate_cost with negative budget.
-    """
-    with patch('requests.get', return_value=mock_response) as mock_get:
-        surface = 10.0
-        location = "Test Location"
-        consumption = 1000.0
-        budget = -10000.0
-        
-        result = solar_calculator.calculate_cost(surface, location, consumption, budget)
-        
-        assert result == {
-            "cost": 1000.0,
-            "roi": (1000 - (-10000))/(-10000) * 100,
-            "savings": 500.0,
-            "co2_emissions": 100.0
-        }
-        mock_get.assert_called_once_with(
-            f"{mock_api_url}/location/Test%20Location",
-            headers={"Authorization": f"Bearer {mock_api_key}"}
-        )
+def test_calculate_saving(mock_data):
+    """Test che verifica il calcolo corretto del risparmio."""
+    calculator = SolarCalculator()
+    calculator.set_data(**mock_data)
+    expected_saving = mock_data["budget"] - mock_data["consumo"]
+    assert calculator.calculate_saving() == expected_saving
 
-def test_calculate_cost_invalid_location(solar_calculator, mock_api_key, mock_api_url):
-    """
-    Test calculate_cost with invalid location that returns empty data.
-    """
-    with patch('requests.get', return_value=MagicMock(json=MagicMock(side_effect=KeyError))) as mock_get:
-        surface = 10.0
-        location = "Invalid Location"
-        consumption = 1000.0
-        budget = 10000.0
-        
-        result = solar_calculator.calculate_cost(surface, location, consumption, budget)
-        
-        assert result == {}
-        mock_get.assert_called_once_with(
-            f"{mock_api_url}/location/Invalid%20Location",
-            headers={"Authorization": f"Bearer {mock_api_key}"}
-        )
+def test_calculate_incentives(mock_data):
+    """Test che verifica il calcolo corretto degli incentivi."""
+    calculator = SolarCalculator()
+    calculator.set_data(**mock_data)
+    expected_incentives = mock_data["budget"] * 0.1
+    assert calculator.calculate_incentives() == expected_incentives
 
-def test_calculate_cost_api_failure(solar_calculator, mock_api_key, mock_api_url):
-    """
-    Test calculate_cost when API call fails.
-    """
-    with patch('requests.get', side_effect=Exception("API Error")) as mock_get:
-        surface = 10.0
-        location = "Test Location"
-        consumption = 1000.0
-        budget = 10000.0
-        
-        result = solar_calculator.calculate_cost(surface, location, consumption, budget)
-        
-        assert result == {}
-        mock_get.assert_called_once_with(
-            f"{mock_api_url}/location/Test%20Location",
-            headers={"Authorization": f"Bearer {mock_api_key}"}
-        )
+def test_calculate_co2_saving(mock_data):
+    """Test che verifica il calcolo corretto della quantità di CO₂ risparmiata."""
+    calculator = SolarCalculator()
+    calculator.set_data(**mock_data)
+    expected_co2_saving = mock_data["consumo"] * 0.05
+    assert calculator.calculate_co2_saving() == expected_co2_saving
 
-def test_run_method(solar_calculator, mock_api_key, mock_api_url, mock_location_data, mock_response):
-    """
-    Test run method with mocked user input.
-    """
-    with patch('builtins.input', side_effect=["10.0", "Test Location", "1000.0", "10000.0"]), \
-         patch('requests.get', return_value=mock_response):
-        
-        solar_calculator.run()
-        
-        # Verify calculate_cost was called with correct arguments
-        solar_calculator.calculate_cost.assert_called_once_with(10.0, "Test Location", 1000.0, 10000.0)
+def test_run(mock_data):
+    """Test che verifica l'esecuzione corretta del metodo run."""
+    calculator = SolarCalculator()
+    result = calculator.run()
+    assert isinstance(result, dict)
+    assert "cost" in result
+    assert "roi" in result
+    assert "saving" in result
+    assert "incentives" in result
+    assert "co2_saving" in result
 
-def test_logging_error_on_api_failure(solar_calculator, mock_api_key, mock_api_url):
-    """
-    Test logging when API call fails.
-    """
-    with patch('requests.get', side_effect=Exception("API Error")), \
-         patch('logging.error') as mock_logging_error:
-        
-        solar_calculator.calculate_cost(10.0, "Test Location", 1000.0, 10000.0)
-        
-        mock_logging_error.assert_called_once_with("Error calculating cost: API Error")
+def test_calculate_roi_zero_budget():
+    """Test che verifica il calcolo del ROI con budget zero."""
+    calculator = SolarCalculator()
+    calculator.set_data(superficie=50, località="Roma", consumo=8000, budget=0)
+    with pytest.raises(ZeroDivisionError):
+        calculator.calculate_roi()
+
+def test_calculate_cost_zero_values():
+    """Test che verifica il calcolo del costo con valori zero."""
+    calculator = SolarCalculator()
+    calculator.set_data(superficie=0, località="Roma", consumo=0, budget=0)
+    assert calculator.calculate_cost() == 0
+
+def test_calculate_saving_negative():
+    """Test che verifica il calcolo del risparmio con valori negativi."""
+    calculator = SolarCalculator()
+    calculator.set_data(superficie=50, località="Roma", consumo=25000, budget=20000)
+    assert calculator.calculate_saving() == -5000
+
+def test_calculate_incentives_zero_budget():
+    """Test che verifica il calcolo degli incentivi con budget zero."""
+    calculator = SolarCalculator()
+    calculator.set_data(superficie=50, località="Roma", consumo=8000, budget=0)
+    assert calculator.calculate_incentives() == 0
 ```
