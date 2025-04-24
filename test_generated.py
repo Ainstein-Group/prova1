@@ -1,73 +1,52 @@
-Ecco i test unitari per il codice Python:
-
 ```python
 import unittest
-import torch
-from your_module import CrewAI_Agent, create_agent  # Sostituire 'your_module' con il nome del modulo
+from unittest.mock import Mock
+from your_module import CodeWriterAgent, create_agents  # Sostituisci 'your_module' con il nome del modulo
 
-class TestCrewAI_Agent(unittest.TestCase):
-    
-    def setUp(self):
-        self.agent = create_agent("gpt2", "t5-small")  # Sostituire con i parametri appropriati
-        
-    def test_generate_response(self):
-        input_text = "Hello, how are you?"
-        response = self.agent.generate_response(input_text)
-        self.assertIsInstance(response, str)
-        self.assertGreater(len(response), 0)
-        
-        # Test con input vuoto
-        response_empty = self.agent.generate_response("")
-        self.assertIsInstance(response_empty, str)
-        
-    def test_train_on_experience(self):
-        # Crea un'esperienza di training
-        experience = [{
-            "input_text": "Hello",
-            "target_text": "Hi"
-        }]
-        
-        # Esegue il training
-        for batch in experience:
-            input_text, target_text = batch["input_text"], batch["target_text"]
-            input_ids = self.agent.tokenizer.encode(input_text, return_tensors="pt").to(self.agent.transformer.device)
-            target_ids = self.agent.tokenizer.encode(target_text, return_tensors="pt").to(self.agent.transformer.device)
-            
-            optimizer = torch.optim.Adam(self.agent.transformer.parameters(), lr=1e-5)
-            optimizer.zero_grad()
-            
-            outputs = self.agent.transformer(input_ids=input_ids, labels=target_ids)
-            loss = outputs.loss
-            self.assertLess(loss.item(), float('inf'))  # Verifica che la loss non sia infinita
-            self.assertGreaterEqual(loss.item(), 0)    # Verifica che la loss sia non negativa
-            
-            loss.backward()
-            optimizer.step()
-            
-    def test_save_and_load_model(self):
-        # Salva il modello
-        temp_path = "temp_model.pth"
-        self.agent.save_model(temp_path)
-        
-        # Carica il modello
-        self.agent.load_model(temp_path)
-        
-        # Verifica che il modello è stato caricato correttamente
-        self.assertIsNotNone(self.agent.transformer.state_dict())
-        
-        # Pulizia
-        import os
-        if os.path.exists(temp_path):
-            os.remove(temp_path)
-            
-    def test_create_agent(self):
-        agent = create_agent("gpt2", "t5-small")
-        self.assertIsInstance(agent, CrewAI_Agent)
-        self.assertIsNotNone(agent.transformer)
-        self.assertIsNotNone(agent.tokenizer)
-        
+class TestCodeWriterAgent(unittest.TestCase):
+    def test_code_generator_import(self):
+        agent = CodeWriterAgent(role="Test", goal="Test", backstory="Test", llm=Mock())
+        prompt = "import random"
+        expected_code = "import random\n"
+        self.assertEqual(agent.code_generator(prompt), expected_code)
+
+    def test_code_generator_class(self):
+        agent = CodeWriterAgent(role="Test", goal="Test", backstory="Test", llm=Mock())
+        prompt = "class TestClass"
+        expected_code = "class TestClass:\n"
+        self.assertEqual(agent.code_generator(prompt), expected_code)
+
+    def test_code_generator_def(self):
+        agent = CodeWriterAgent(role="Test", goal="Test", backstory="Test", llm=Mock())
+        prompt = "def test_function"
+        expected_code = "def test_function:\n"
+        self.assertEqual(agent.code_generator(prompt), expected_code)
+
+    def test_code_generator_multiple_commands(self):
+        agent = CodeWriterAgent(role="Test", goal="Test", backstory="Test", llm=Mock())
+        prompt = "import random class TestClass def test_function"
+        expected_code = "import random\nclass TestClass:\ndef test_function:\n"
+        self.assertEqual(agent.code_generator(prompt), expected_code)
+
+    def test_task_handler(self):
+        agent = CodeWriterAgent(role="Test", goal="Test", backstory="Test", llm=Mock())
+        task = Mock()
+        task.description = "Scrivere codice di test"
+        result = agent.task_handler(task)
+        self.assertIsInstance(result, str)
+
+    def test_create_agents(self):
+        llm1 = Mock()
+        llm2 = Mock()
+        agents = create_agents(llm1, llm2)
+        self.assertEqual(len(agents), 1)
+        self.assertIsInstance(agents[0], CodeWriterAgent)
+
+    def test_code_generator_edge_cases(self):
+        agent = CodeWriterAgent(role="Test", goal="Test", backstory="Test", llm=Mock())
+        prompt = "   "  # Stringa vuota o con spazi
+        self.assertEqual(agent.code_generator(prompt), "\n")
+
 if __name__ == "__main__":
     unittest.main()
 ```
-
-Questo set di test copre le principali funzionalità del codice, inclusa la generazione di risposte, l'addestramento, il salvataggio e il caricamento del modello, oltre alla creazione dell'agente.
