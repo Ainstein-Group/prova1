@@ -1,83 +1,122 @@
 ```markdown
-# CodeWriterAgent: Un agente CrewAI per la generazione di codice Python
+# Sustainable Home Agent
 
-Questo documento spiega come utilizzare l'agente CodeWriterAgent per generare codice Python in risposta a prompt.
+## Descrizione
 
-## Cos'è CodeWriterAgent
+Il progetto Sustainable Home Agent è un sistema di raccomandazioni basato su intelligenza artificiale (AI) progettato per aiutare gli utenti a vivere in modo più sostenibile. L'agente utilizza un modello linguistico di grandi dimensioni (LLM) per analizzare i dati degli utenti e fornire consigli personalizzati su come ridurre il loro impatto ambientale.
 
-CodeWriterAgent è un agente multi-agente che utilizza un modello linguistico di grandi dimensioni (LLM) per generare codice Python basato su prompt.
+## Requisiti e Dipendenze
 
-**Utilizzo**
+* Python 3.7 o superiore
+* Google Cloud SDK
+* `requests`
+* `google-cloud-aiplatform`
+* `crewai`
 
-Per utilizzare l'agente CodeWriterAgent, procedi come segue:
+## Installazione
 
-1. **Installa le dipendenze**
+1. Installa le dipendenze necessarie:
 
-   ```
-   pip install crewai llm
-   ```
-
-2. **Crea un agente**
-
-   ```python
-   from crewai import Agent, Task, Crew
-   from your_module import CodeWriterAgent, create_agents  # Sostituisci 'your_module' con il nome del modulo
-
-   
-   llm1 = llm.load("gpt-3.5-turbo")
-   llm2 = llm.load("gpt-3.5-turbo")
-   agent = create_agents(llm1, llm2)[0]
-   ```
-
-3. **Definisci un compito**
-
-   ```python
-   task = Task(description="Scrivere codice Python per un agente basato su prompt ottimizzato", agent=agent)
-   ```
-
-4. **Avvia la Crew**
-
-   ```python
-   crew = Crew(tasks=[task])
-   crew.kickoff()
-   ```
-
-**Esempio:**
-
-```python
-# Crea un agente
-agent = create_agents(llm1, llm2)[0]
-
-# Definisci un compito
-task = Task(description="Scrivere funzione Python che somma due numeri", agent=agent)
-
-# Avvia la Crew
-crew = Crew(tasks=[task])
-crew.kickoff()
+```bash
+pip install requests google-cloud-aiplatform crewai
 ```
 
-**Documentazione aggiuntiva**
+2. Assicurati di avere un account Google Cloud e di aver abilitato l'API Vertex AI.
 
-Per maggiori informazioni sull'architettura degli agenti CrewAI, consulta la documentazione ufficiale [https://crew-ai.io/docs/](https://crew-ai.io/docs/).
+## Guida all'Utilizzo
 
-## Test
+1. **Creare un Agente:**
 
 ```python
-import unittest
-from unittest.mock import Mock
-from your_module import CodeWriterAgent, create_agents
+from your_module import SustainableHomeAgent, create_agents
+from google.cloud import aiplatform
 
-class TestCodeWriterAgent(unittest.TestCase):
-    def test_code_generator_import(self):
-        agent = CodeWriterAgent(role="Test", goal="Test", backstory="Test", llm=Mock())
-        prompt = "import random"
-        expected_code = "import random\n"
-        self.assertEqual(agent.code_generator(prompt), expected_code)
-    # ... altri test ...
+# Inizializzare un LLM da Vertex AI
+llm = aiplatform.LLM("groq/gemma2-9b-it")
 
-if __name__ == "__main__":
-    unittest.main()
+# Creare un agente
+agent = SustainableHomeAgent(llm)
 ```
+
+2. **Raccolta dei Dati:**
+
+L'agente raccoglie i dati iniziali dall'utente tramite un modulo o un'interfaccia utente.
+
+```python
+data = agent.collect_data()
+```
+
+3. **Analisi dei Dati:**
+
+L'agente analizza i dati raccolti utilizzando il modello linguistico.
+
+```python
+recommendations = agent.analyze_data(data)
+```
+
+4. **Generazione delle Raccomandazioni:**
+
+L'agente genera raccomandazioni personalizzate basate sui risultati dell'analisi.
+
+```python
+recommendations_list = agent.generate_recommendations(recommendations)
+```
+
+5. **Fornire le Raccomandazioni:**
+
+L'agente fornisce le raccomandazioni all'utente.
+
+```python
+agent.provide_recommendations(recommendations_list)
+```
+
+6. **Monitoraggio e Aggiornamento:**
+
+L'agente monitora i dati e aggiorna le raccomandazioni periodicamente.
+
+```python
+agent.monitor_and_update()
+```
+
+## Architettura
+
+L'architettura del Sustainable Home Agent è basata su un pattern di agente multi-agente.
+
+* **Agente:** Un singolo agente è responsabile dell'interazione con un utente, della raccolta dei dati, dell'analisi e della generazione di raccomandazioni.
+* **LLM:** Il modello linguistico di grandi dimensioni fornisce la capacità di comprendere e generare testo naturale.
+* **Crew:** La classe `Crew` gestisce un gruppo di agenti e coordina le loro attività.
+
+## API Reference
+
+**Classe `SustainableHomeAgent`:**
+
+* **`__init__(self, llm: aiplatform.LLM)`:** Inizializza un nuovo agente con un modello linguistico fornito.
+* **`collect_data(self) -> Dict`:** Raccoglie i dati iniziali dall'utente.
+* **`analyze_data(self, data: Dict) -> Dict`:** Analizza i dati utilizzando il modello linguistico.
+* **`generate_recommendations(self, recommendations: Dict) -> List`:** Genera raccomandazioni personalizzate.
+* **`provide_recommendations(self, recommendations: List) -> None`:** Fornisce le raccomandazioni all'utente.
+* **`monitor_and_update(self) -> None`:** Monitora i dati e aggiorna le raccomandazioni periodicamente.
+
+**Funzione `create_agents(llms: List[aiplatform.LLM]) -> Crew`:**
+
+* Crea un nuovo gruppo di agenti utilizzando una lista di modelli linguistici.
+
+## Guida ai Test
+
+Il progetto include un suite di test unitari utilizzando la libreria `pytest`.
+
+Per eseguire i test, utilizzare il seguente comando:
+
+```bash
+pytest
+```
+
+## Contribuzione e Licenza
+
+Questo progetto è open-source e rilasciato sotto la licenza MIT.
+
+Contribuisci al progetto inviando pull request su GitHub.
+
 
 
 ```
