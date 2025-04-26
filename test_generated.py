@@ -1,112 +1,112 @@
 Your final answer must be the great and the most complete as possible, it must be outcome described.
 
-```
-
 ```python
 import pytest
-from unittest.mock import MagicMock, patch
-from crewai import CrewAI-Agent, CrewAI_Task, CrewAI_Crew
-import logging
+from unittest.mock import Mock, patch
+from typing import List, Dict
+from your_module import (
+    NLPEngine,
+    ContextManager,
+    AgentModule,
+    create_agents,
+    main
+)
 
 @pytest.fixture
-def mock_llm():
-    llm = MagicMock()
-    llm.generate.return_value = [{"generated_text": "Test response"}]
-    return llm
+def llm_list() -> List[str]:
+    """Fixture providing a list of LLM models for testing."""
+    return ['bert-base-uncased', 'roberta-base']
 
 @pytest.fixture
-def mock_empty_llm():
-    llm = MagicMock()
-    llm.generate.return_value = [{"generated_text": ""}]
-    return llm
+def agent_module(llm_list) -> AgentModule:
+    """Fixture providing an instance of AgentModule."""
+    return AgentModule(llm_list)
 
 @pytest.fixture
-def mock_failing_llm():
-    llm = MagicMock()
-    llm.generate.side_effect = Exception("Test error")
-    return llm
+def context_manager() -> ContextManager:
+    """Fixture providing an instance of ContextManager."""
+    return ContextManager()
 
-def test_crewai_agent_init(mock_llm):
-    """Test CrewAI-Agent initialization."""
-    agent = CrewAI-Agent(role="Test", goal="Test", backstory="Test", llm=mock_llm)
-    assert agent.role == "Test"
-    assert agent.goal == "Test"
-    assert agent.backstory == "Test"
-    assert agent.llm == mock_llm
+def test_nlpe_engine_init():
+    """Test initialization of NLPEngine with a valid model."""
+    model = "test-model"
+    engine = NLPEngine(model)
+    assert engine.model == model
 
-def test_crewai_agent.respond_success(mock_llm):
-    """Test successful response generation."""
-    agent = CrewAI-Agent(role="Test", goal="Test", backstory="Test", llm=mock_llm)
-    response = agent.respond("Test input")
-    assert response == "Test response"
+def test_nlpe_process_text():
+    """Test process_text method of NLPEngine."""
+    engine = NLPEngine("test-model")
+    result = engine.process_text("test-text")
+    assert isinstance(result, Dict)
 
-def test_crewai_agent.respond_empty(mock_empty_llm):
-    """Test response when generated text is empty."""
-    agent = CrewAI-Agent(role="Test", goal="Test", backstory="Test", llm=mock_empty_llm)
-    response = agent.respond("Test input")
-    assert response == "Mi dispiace, non sono in grado di rispondere alla tua domanda."
+def test_context_manager_update(context_manager):
+    """Test update_context method of ContextManager."""
+    key = "test-key"
+    value = "test-value"
+    context_manager.update_context(key, value)
+    assert context_manager.get_context(key) == value
 
-def test_crewai_agent.respond_failure(mock_failing_llm):
-    """Test error handling in response generation."""
-    agent = CrewAI-Agent(role="Test", goal="Test", backstory="Test", llm=mock_failing_llm)
-    response = agent.respond("Test input")
-    assert response == "Mi dispiace, non sono in grado di rispondere alla tua domanda."
+def test_context_manager_get_missing(context_manager):
+    """Test get_context with a missing key."""
+    key = "missing-key"
+    assert context_manager.get_context(key) == ''
 
-def test_crewai_task_init():
-    """Test CrewAI-Task initialization."""
-    agent = CrewAI-Agent(role="Test", goal="Test", backstory="Test", llm=MagicMock())
-    task = CrewAI_Task(description="Test", agent=agent)
-    assert task.description == "Test"
-    assert task.agent == agent
+def test_agent_module_init(llm_list):
+    """Test initialization of AgentModule with valid LLMs."""
+    module = AgentModule(llm_list)
+    assert module.llms == llm_list
+    assert isinstance(module.nlp_engine, NLPEngine)
+    assert isinstance(module.context_manager, ContextManager)
 
-def test_crewai_crew_init(mock_llm):
-    """Test CrewAI-Crew initialization."""
-    agent = CrewAI-Agent(role="Test", goal="Test", backstory="Test", llm=mock_llm)
-    crew = CrewAI_Crew(agents=[agent], tasks=[])
-    assert crew.agents == [agent]
-    assert crew.tasks == []
+def test_agent_module_process_input(agent_module, llm_list):
+    """Test process_input method of AgentModule."""
+    input_text = "test-input"
+    with patch.object(agent_module.nlp_engine, 'process_text') as mock_process:
+        mock_process.return_value = {"output": "test-output"}
+        result = agent_module.process_input(input_text)
+        assert result == {"output": "test-output"}
+        mock_process.assert_called_once_with(input_text)
 
-def test_crewai_crew_kickoff(mock_llm, monkeypatch):
-    """Test kickoff method with mocked user input and response."""
-    agent = CrewAI-Agent(role="Test", goal="Test", backstory="Test", llm=mock_llm)
-    task = CrewAI_Task(description="Test", agent=agent)
-    crew = CrewAI_Crew(agents=[agent], tasks=[task])
-    
-    monkeypatch.setattr('builtins.input', lambda: "Test input")
-    agent.respond = MagicMock(return_value="Test response")
-    
-    crew.kickoff()
-    agent.respond.assert_called_once_with("Test input")
+def test_agent_module_process_input_error(agent_module, llm_list):
+    """Test error handling in process_input method."""
+    input_text = "test-input"
+    error_message = "Test error"
+    with patch.object(agent_module.nlp_engine, 'process_text', side_effect=Exception(error_message)):
+        result = agent_module.process_input(input_text)
+        assert result == 'Error processing input'
 
-def test_create_agents(mock_llm):
+def test_agent_module_get_response(agent_module, llm_list):
+    """Test get_response method of AgentModule."""
+    input_text = "test-input"
+    with patch.object(agent_module.nlp_engine, 'process_text') as mock_process:
+        mock_process.return_value = {"response": "test-response"}
+        result = agent_module.get_response(input_text)
+        assert result == {"response": "test-response"}
+        mock_process.assert_called_once_with(input_text)
+
+def test_agent_module_get_response_error(agent_module, llm_list):
+    """Test error handling in get_response method."""
+    input_text = "test-input"
+    error_message = "Test error"
+    with patch.object(agent_module.nlp_engine, 'process_text', side_effect=Exception(error_message)):
+        result = agent_module.get_response(input_text)
+        assert result == 'Error generating response'
+
+def test_create_agents(llm_list):
     """Test create_agents function."""
-    llm1 = MagicMock()
-    llm2 = MagicMock()
-    agents = create_agents(llm1, llm2)
-    assert len(agents) == 2
-    assert all(isinstance(agent, CrewAI-Agent) for agent in agents)
+    agents = create_agents(llm_list)
+    assert len(agents) == len(llm_list)
+    for i, agent in enumerate(agents):
+        assert agent.role == "Code Writer"
+        assert agent.goal == "Scrivere codice Python per agenti CrewAI"
+        assert agent.backstory == "Esperto di multi-agente."
+        assert agent.llm == llm_list[i]
 
-@patch('transformers.pipeline')
-def test_pipeline_creation(mock_pipeline):
-    """Test pipeline creation in create_agents."""
-    mock_pipeline.return_value = MagicMock()
-    create_agents(mock_pipeline(), mock_pipeline())
-    assert mock_pipeline.call_count == 2
-
-def test_crewai_agent.respond_edge_cases(mock_llm):
-    """Test edge cases for respond method."""
-    agent = CrewAI-Agent(role="Test", goal="Test", backstory="Test", llm=mock_llm)
-    
-    # Test with empty input
-    response = agent.respond("")
-    assert response == "Test response"
-    
-    # Test with non-string input
-    response = agent.respond(123)
-    assert response == "Test response"
-
-def test_logging_error(mock_failing_llm, caplog):
-    """Test error logging in respond method."""
-    agent = CrewAI-Agent(role="Test", goal="Test", backstory="Test", llm=mock_failing_llm)
-    agent.respond("Test input")
-    assert "Error generating response: Test error" in caplog.text
+def test_main(mocker, llm_list):
+    """Test main function."""
+    mock_crew = mocker.Mock()
+    with patch('your_module.Crew', mock_crew), patch('your_module.AgentModule') as mock_agent_module:
+        main()
+        mock_agent_module.assert_called_once_with(llm_list)
+        assert len(mock_crew.call_args_list) > 0
+```
