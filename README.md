@@ -1,110 +1,109 @@
 ```markdown
-# GreenHomePlanner: Your Sustainable Home Design Assistant
+# CrewAI: Un Framework per l'Interazione Multi-Agente basata su Prompting
 
-**GreenHomePlanner** is a Python tool designed to help homeowners analyze their energy consumption, suggest sustainable interventions, and estimate the costs and benefits of these interventions. 
+## Descrizione
 
-## Description
+CrewAI è un framework Python per la creazione di sistemi multi-agente basati su modelli linguistici di grandi dimensioni (LLM). 
 
-This project aims to empower homeowners to make informed decisions about improving the energy efficiency of their homes. It provides a framework for analyzing existing energy consumption data, identifying potential areas for improvement, and evaluating the financial and environmental impact of various sustainable solutions.
+Permette di definire agenti con ruoli specifici, obiettivi e backstory, che interagiscono tra loro per completare compiti complessi.  L'architettura di CrewAI si concentra sulla semplicità d'uso e sulla flessibilità, consentendo agli sviluppatori di costruire sistemi multi-agenti in modo efficiente.
 
-## Requirements and Dependencies
+## Requisiti e Dipendenze
 
-* **Python 3.7 or higher**
-* **Pandas:** Data manipulation and analysis library ([https://pandas.pydata.org/](https://pandas.pydata.org/))
-* **NumPy:** Numerical computing library ([https://numpy.org/](https://numpy.org/))
-* **typing:** Type hinting for better code readability and maintainability
+* Python 3.7 o superiore
+* `transformers` (per l'utilizzo di modelli LLM)
+* `logging`
 
-## Installation
+Puoi installare le dipendenze utilizzando pip:
 
-1. Clone the repository: `git clone https://github.com/your-username/GreenHomePlanner.git`
-2. Navigate to the project directory: `cd GreenHomePlanner`
-3. Install the required dependencies: `pip install -r requirements.txt`
-
-## Usage
-
-**1. Data Preparation:**
-
-* Ensure you have energy consumption data in a CSV file named "energy_consumption_data.csv". 
-* The CSV should have a column named "data" containing your energy consumption values.
-
-**2. Running the Planner:**
-
-* Modify the `house_info` and `user_preferences` dictionaries in `main.py` to match your specific house details and desired intervention type.
-
-* Run the script: `python main.py`
-
-**Example:**
-
-```python
-# main.py
-
-energy_consumption_data = pd.read_csv("energy_consumption_data.csv")
-house_info = {"house_size": 150, "house_type": "single_family"}
-user_preferences = {"budget": 15000, "intervention_type": "solar_panels"}
-
-green_home_planner = GreenHomePlanner(energy_consumption_data, house_info, user_preferences)
-green_home_planner.run()
+```bash
+pip install transformers logging
 ```
 
-This will analyze your energy consumption data, suggest suitable sustainable interventions, estimate their costs and benefits, and check for available government incentives.
+## Guida all'Installazione
 
-## Architecture
+1. Assicurati di avere Python 3.7 o superiore installato.
+2. Apri un terminale e esegui il comando:
 
-The GreenHomePlanner follows a modular architecture:
+```bash
+pip install -r requirements.txt
+```
 
-* **`GreenHomePlanner` Class:**
-    *  Manages the overall workflow, including data loading, analysis, intervention suggestion, cost-benefit estimation, and government incentive checks.
-* **`analyze_energy_consumption()` Method:**
-    *  Processes energy consumption data to identify patterns and potential areas for improvement.
-* **`suggest_sustainable_interventions()` Method:**
-    *  Recommends sustainable interventions based on the analyzed data and user preferences.
-* **`estimate_costs_and_benefits()` Method:**
-    *  Calculates the estimated costs and benefits of each suggested intervention.
-* **`check_government_incentives()` Method:**
-    *  Determines if any government incentives are available for the suggested interventions.
+## Guida all'Utilizzo
+
+Ecco un esempio di utilizzo di CrewAI per creare un sistema con due agenti:
+
+```python
+from crewai import Agent, Task, Crew
+from transformers import pipeline
+
+logging.basicConfig(level=logging.INFO)
+
+# Caricamento di un modello LLM
+llm1 = pipeline("text-generation", model="t5-small")
+llm2 = pipeline("text-generation", model="t5-small")
+
+# Creazione degli agenti
+agent1 = Agent(role="Code Writer", goal="Scrivere codice Python per agenti CrewAI", backstory="Esperto di multi-agente.", llm=llm1)
+agent2 = Agent(role="Code Writer", goal="Scrivere codice Python per agenti CrewAI", backstory="Esperto di multi-agente.", llm=llm2)
+
+# Creazione di una task
+task = Task(description="Scrivere codice Python per un agente basato su prompt ottimizzato", agent=agent1)
+
+# Creazione del crew
+crew = Crew(agents=[agent1, agent2], tasks=[task])
+
+# Avvio del sistema
+crew.kickoff()
+```
+
+In questo esempio, due agenti vengono creati, ognuno con un modello LLM diverso. Viene quindi definita una task che viene assegnata a un agente. Infine, il metodo `kickoff()` avvia il sistema, che consente agli agenti di interagire e completare la task.
+
+## Architettura e Componenti Principali
+
+CrewAI è composto da tre componenti principali:
+
+* **Agente:** Rappresenta un singolo agente nel sistema, con un ruolo, un obiettivo, una backstory e un modello LLM.
+* **Task:** Definisce un compito che deve essere completato da un agente.
+* **Crew:** Rappresenta il sistema multi-agente, composto da una lista di agenti e una lista di tasks.
 
 ## API Reference
 
-**`GreenHomePlanner` Class**
+**Classe `Agent`:**
 
-* **`__init__(self, energy_consumption_data: pd.DataFrame, house_info: Dict[str, Any], user_preferences: Dict[str, Any])`:**
-    *  Initializes the GreenHomePlanner object with energy consumption data, house information, and user preferences.
-* **`analyze_energy_consumption(self) -> pd.DataFrame`:**
-    *  Analyzes energy consumption data to identify patterns and potential areas for improvement.
-* **`suggest_sustainable_interventions(self) -> List[Dict[str, Any]]`:**
-    *  Suggests sustainable interventions based on the analyzed data and user preferences.
-* **`estimate_costs_and_benefits(self, intervention: Dict[str, Any]) -> Dict[str, Any]`:**
-    *  Estimates the costs and benefits of a given intervention.
-* **`check_government_incentives(self, intervention: Dict[str, Any]) -> Dict[str, Any]`:**
-    *  Checks for available government incentives for a given intervention.
+* **`__init__(self, role, goal, backstory, llm)`:**  
+    * `role`:  Il ruolo dell'agente.
+    * `goal`: L'obiettivo dell'agente.
+    * `backstory`: La storia dell'agente.
+    * `llm`: Il modello LLM utilizzato dall'agente.
+* **`respond(self, input_text)`:** Genera una risposta basata sull'input fornito.
 
-* **`run(self) -> None`:**
-    *  Executes the entire workflow, including data analysis, intervention suggestion, cost-benefit estimation, and incentive checking.
+**Classe `Task`:**
 
-## Testing
+* **`__init__(self, description, agent)`:**
+    * `description`: La descrizione della task.
+    * `agent`: L'agente assegnato alla task.
+* **`execute(self)`:** Esegue la task assegnata all'agente.
 
-This project includes unit tests using the `pytest` framework.
+**Classe `Crew`:**
 
-To run the tests, execute the following command in the project directory:
+* **`__init__(self, agents, tasks)`:**
+    * `agents`: Una lista di agenti nel crew.
+    * `tasks`: Una lista di tasks da completare.
+* **`kickoff(self)`:** Avvia il sistema multi-agente, assegnando le tasks agli agenti.
+
+## Guida ai Test
+
+CrewAI viene testato utilizzando il framework `pytest`. Per eseguire i test, esegui il comando:
 
 ```bash
 pytest
 ```
 
-## Contributing
+## Contribuzione e Licenza
 
-Contributions are welcome!
+Contribuisci a CrewAI!  Le modifiche e le correzioni sono benvenute.
 
-Please follow these guidelines:
-
-* Fork the repository
-* Create a new branch for your changes
-* Write tests for your changes
-* Submit a pull request
-
-## License
-
-This project is licensed under the MIT License. See the LICENSE file for details.
+CrewAI è rilasciato sotto la licenza [MIT](https://opensource.org/licenses/MIT).
 
 
 ```
