@@ -1,109 +1,115 @@
 ```markdown
-# CrewAI: Un Framework per l'Interazione Multi-Agente basata su Prompting
+# CrewAI Agent Framework
 
 ## Descrizione
 
-CrewAI è un framework Python per la creazione di sistemi multi-agente basati su modelli linguistici di grandi dimensioni (LLM). 
-
-Permette di definire agenti con ruoli specifici, obiettivi e backstory, che interagiscono tra loro per completare compiti complessi.  L'architettura di CrewAI si concentra sulla semplicità d'uso e sulla flessibilità, consentendo agli sviluppatori di costruire sistemi multi-agenti in modo efficiente.
+Questo framework Python fornisce un'architettura per creare agenti basati su modelli linguistici di grandi dimensioni (LLM) per il completamento di attività collaborative. Gli agenti possono interagire tra loro tramite un sistema di gestione delle attività (Crew) e utilizzare modelli di linguaggio pre-addestrati per elaborare il testo e generare risposte.
 
 ## Requisiti e Dipendenze
 
 * Python 3.7 o superiore
-* `transformers` (per l'utilizzo di modelli LLM)
+* `crewai` (puoi installarlo con `pip install crewai`)
 * `logging`
 
-Puoi installare le dipendenze utilizzando pip:
+## Installazione
 
-```bash
-pip install transformers logging
-```
+1. Installa le dipendenze:
 
-## Guida all'Installazione
+   ```bash
+   pip install crewai logging 
+   ```
 
-1. Assicurati di avere Python 3.7 o superiore installato.
-2. Apri un terminale e esegui il comando:
-
-```bash
-pip install -r requirements.txt
-```
+2. Salva il codice sorgente in una cartella.
 
 ## Guida all'Utilizzo
 
-Ecco un esempio di utilizzo di CrewAI per creare un sistema con due agenti:
+1. **Creazione degli agenti:**
 
-```python
-from crewai import Agent, Task, Crew
-from transformers import pipeline
+   Utilizza la funzione `create_agents` per creare una lista di agenti, ognuno con un proprio modello LLM.
 
-logging.basicConfig(level=logging.INFO)
+   ```python
+   from your_module import create_agents
 
-# Caricamento di un modello LLM
-llm1 = pipeline("text-generation", model="t5-small")
-llm2 = pipeline("text-generation", model="t5-small")
+   llms = ['bert-base-uncased', 'roberta-base']
+   agents = create_agents(llms)
+   ```
 
-# Creazione degli agenti
-agent1 = Agent(role="Code Writer", goal="Scrivere codice Python per agenti CrewAI", backstory="Esperto di multi-agente.", llm=llm1)
-agent2 = Agent(role="Code Writer", goal="Scrivere codice Python per agenti CrewAI", backstory="Esperto di multi-agente.", llm=llm2)
+2. **Creazione di una Crew:**
 
-# Creazione di una task
-task = Task(description="Scrivere codice Python per un agente basato su prompt ottimizzato", agent=agent1)
+   Utilizza la classe `Crew` per creare un'istanza di Crew, specificando gli agenti e le attività.
 
-# Creazione del crew
-crew = Crew(agents=[agent1, agent2], tasks=[task])
+   ```python
+   from your_module import Crew
 
-# Avvio del sistema
-crew.kickoff()
-```
+   crew = Crew(agents=agents, tasks=[Task(description="Scrivere codice Python per un agente basato su prompt ottimizzato", agent=agents[0])])
+   ```
 
-In questo esempio, due agenti vengono creati, ognuno con un modello LLM diverso. Viene quindi definita una task che viene assegnata a un agente. Infine, il metodo `kickoff()` avvia il sistema, che consente agli agenti di interagire e completare la task.
+3. **Avvio della Crew:**
+
+   Avvia la Crew con il metodo `kickoff`.
+
+   ```python
+   crew.kickoff()
+   ```
 
 ## Architettura e Componenti Principali
 
-CrewAI è composto da tre componenti principali:
-
-* **Agente:** Rappresenta un singolo agente nel sistema, con un ruolo, un obiettivo, una backstory e un modello LLM.
-* **Task:** Definisce un compito che deve essere completato da un agente.
-* **Crew:** Rappresenta il sistema multi-agente, composto da una lista di agenti e una lista di tasks.
+* **Agent:** Rappresenta un singolo agente con un ruolo, un obiettivo, una storia e un modello LLM.
+* **NLPEngine:** Classe responsabile dell'elaborazione del testo utilizzando il modello LLM.
+* **ContextManager:** Gestisce il contesto di conversazione tra gli agenti.
+* **Crew:** Gestisce la collaborazione tra gli agenti, assegnando attività e coordinando le interazioni.
+* **Task:** Rappresenta un'attività da completare da parte degli agenti.
 
 ## API Reference
 
-**Classe `Agent`:**
+* **`NLPEngine`:**
 
-* **`__init__(self, role, goal, backstory, llm)`:**  
-    * `role`:  Il ruolo dell'agente.
-    * `goal`: L'obiettivo dell'agente.
-    * `backstory`: La storia dell'agente.
-    * `llm`: Il modello LLM utilizzato dall'agente.
-* **`respond(self, input_text)`:** Genera una risposta basata sull'input fornito.
+   * `__init__(self, model: str)`: Inizializza l'engine con un modello LLM.
+   * `process_text(self, text: str) -> Dict`: Processa il testo utilizzando il modello LLM e restituisce un dizionario di risultati.
 
-**Classe `Task`:**
+* **`ContextManager`:**
 
-* **`__init__(self, description, agent)`:**
-    * `description`: La descrizione della task.
-    * `agent`: L'agente assegnato alla task.
-* **`execute(self)`:** Esegue la task assegnata all'agente.
+   * `__init__(self)`: Inizializza il manager del contesto.
+   * `update_context(self, key: str, value: str)`: Aggiorna il contesto con una nuova chiave e valore.
+   * `get_context(self, key: str) -> str`: Recupera il valore associato a una chiave nel contesto.
 
-**Classe `Crew`:**
+* **`AgentModule`:**
 
-* **`__init__(self, agents, tasks)`:**
-    * `agents`: Una lista di agenti nel crew.
-    * `tasks`: Una lista di tasks da completare.
-* **`kickoff(self)`:** Avvia il sistema multi-agente, assegnando le tasks agli agenti.
+   * `__init__(self, llms: List[str])`: Inizializza il modulo agente con una lista di modelli LLM.
+   * `process_input(self, input_text: str) -> str`: Processa l'input testo utilizzando l'engine NLP e aggiorna il contesto.
+   * `get_response(self, input_text: str) -> str`: Genera una risposta utilizzando l'engine NLP e aggiorna il contesto.
+
+* **`create_agents(llms: List[str]) -> List[Agent]`:** Crea una lista di agenti con i modelli LLM specificati.
+
+* **`Crew`:**
+
+   * `__init__(self, agents: List[Agent], tasks: List[Task])`: Inizializza la Crew con gli agenti e le attività.
+   * `kickoff(self)`: Avvia la Crew.
+
 
 ## Guida ai Test
 
-CrewAI viene testato utilizzando il framework `pytest`. Per eseguire i test, esegui il comando:
+Questo progetto include un set di test unitari per verificare il corretto funzionamento delle diverse componenti.
+
+Per eseguire i test, utilizza il seguente comando:
 
 ```bash
 pytest
 ```
 
-## Contribuzione e Licenza
+## Contribuzione
 
-Contribuisci a CrewAI!  Le modifiche e le correzioni sono benvenute.
+I contributi sono benvenuti! Per contribuire a questo progetto, segui questi passaggi:
 
-CrewAI è rilasciato sotto la licenza [MIT](https://opensource.org/licenses/MIT).
+1. Fork il repository su GitHub.
+2. Crea un nuovo branch per il tuo contributo.
+3. Effettua le modifiche desiderate.
+4. Esegui i test per assicurarti che il tuo contributo funzioni correttamente.
+5. Crea un pull request per incorporare le tue modifiche nel ramo principale.
+
+## Licenza
+
+Questo progetto è rilasciato sotto la licenza MIT.
 
 
 ```
