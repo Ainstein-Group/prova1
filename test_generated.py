@@ -5,160 +5,108 @@ Your final answer must be the great and the most complete as possible, it must b
 ```python
 import pytest
 from unittest.mock import MagicMock, patch
-import pandas as pd
-import numpy as np
-from your_module import GreenHomePlanner  # Replace with actual module name
+from crewai import CrewAI-Agent, CrewAI_Task, CrewAI_Crew
+import logging
 
 @pytest.fixture
-def mock_green_home_planner(mocker):
-    """Fixture to provide a mocked GreenHomePlanner instance"""
-    energy_consumption_data = pd.DataFrame()
-    house_info = {}
-    user_preferences = {}
-    return GreenHomePlanner(energy_consumption_data, house_info, user_preferences)
+def mock_llm():
+    llm = MagicMock()
+    llm.generate.return_value = [{"generated_text": "Test response"}]
+    return llm
 
 @pytest.fixture
-def mock_energy_consumption_data():
-    """Fixture to provide mocked energy consumption data"""
-    return pd.DataFrame({
-        'data': np.random.rand(10)
-    })
+def mock_empty_llm():
+    llm = MagicMock()
+    llm.generate.return_value = [{"generated_text": ""}]
+    return llm
 
 @pytest.fixture
-def mock_house_info():
-    """Fixture to provide mocked house information"""
-    return {'house_size': 100, 'house_type': 'single_family'}
+def mock_failing_llm():
+    llm = MagicMock()
+    llm.generate.side_effect = Exception("Test error")
+    return llm
 
-@pytest.fixture
-def mock_user_preferences():
-    """Fixture to provide mocked user preferences"""
-    return {'budget': 10000, 'intervention_type': 'solar_panels'}
+def test_crewai_agent_init(mock_llm):
+    """Test CrewAI-Agent initialization."""
+    agent = CrewAI-Agent(role="Test", goal="Test", backstory="Test", llm=mock_llm)
+    assert agent.role == "Test"
+    assert agent.goal == "Test"
+    assert agent.backstory == "Test"
+    assert agent.llm == mock_llm
 
-class TestGreenHomePlanner:
-    """Test suite for GreenHomePlanner class"""
+def test_crewai_agent.respond_success(mock_llm):
+    """Test successful response generation."""
+    agent = CrewAI-Agent(role="Test", goal="Test", backstory="Test", llm=mock_llm)
+    response = agent.respond("Test input")
+    assert response == "Test response"
 
-    def test_analyze_energy_consumption(self, mock_green_home_planner, mocker):
-        """Test analyze_energy_consumption method"""
-        # Arrange
-        expected_output = pd.DataFrame({'result': [1, 2, 3]})
-        mocker.patch.object(GreenHomePlanner, 'analyze_energy_consumption', return_value=expected_output)
-        
-        # Act
-        result = mock_green_home_planner.analyze_energy_consumption()
-        
-        # Assert
-        assert result.equals(expected_output)
-        GreenHomePlanner.analyze_energy_consumption.assert_called_once()
+def test_crewai_agent.respond_empty(mock_empty_llm):
+    """Test response when generated text is empty."""
+    agent = CrewAI-Agent(role="Test", goal="Test", backstory="Test", llm=mock_empty_llm)
+    response = agent.respond("Test input")
+    assert response == "Mi dispiace, non sono in grado di rispondere alla tua domanda."
 
-    def test_suggest_sustainable_interventions(self, mock_green_home_planner, mocker):
-        """Test suggest_sustainable_interventions method"""
-        # Arrange
-        expected_output = [{'name': 'intervention1', 'type': 'solar'}, {'name': 'intervention2', 'type': 'wind'}]
-        mocker.patch.object(GreenHomePlanner, 'suggest_sustainable_interventions', return_value=expected_output)
-        
-        # Act
-        result = mock_green_home_planner.suggest_sustainable_interventions()
-        
-        # Assert
-        assert result == expected_output
-        GreenHomePlanner.suggest_sustainable_interventions.assert_called_once()
+def test_crewai_agent.respond_failure(mock_failing_llm):
+    """Test error handling in response generation."""
+    agent = CrewAI-Agent(role="Test", goal="Test", backstory="Test", llm=mock_failing_llm)
+    response = agent.respond("Test input")
+    assert response == "Mi dispiace, non sono in grado di rispondere alla tua domanda."
 
-    def test_estimate_costs_and_benefits(self, mock_green_home_planner, mocker):
-        """Test estimate_costs_and_benefits method"""
-        # Arrange
-        intervention = {'name': 'solar', 'type': 'panels'}
-        expected_output = {'costs': 10000, 'benefits': 5000}
-        mocker.patch.object(GreenHomePlanner, 'estimate_costs_and_benefits', return_value=expected_output)
-        
-        # Act
-        result = mock_green_home_planner.estimate_costs_and_benefits(intervention)
-        
-        # Assert
-        assert result == expected_output
-        GreenHomePlanner.estimate_costs_and_benefits.assert_called_once_with(intervention)
+def test_crewai_task_init():
+    """Test CrewAI-Task initialization."""
+    agent = CrewAI-Agent(role="Test", goal="Test", backstory="Test", llm=MagicMock())
+    task = CrewAI_Task(description="Test", agent=agent)
+    assert task.description == "Test"
+    assert task.agent == agent
 
-    def test_check_government_incentives(self, mock_green_home_planner, mocker):
-        """Test check_government_incentives method"""
-        # Arrange
-        intervention = {'name': 'solar', 'type': 'panels'}
-        expected_output = {'incentives': 2000}
-        mocker.patch.object(GreenHomePlanner, 'check_government_incentives', return_value=expected_output)
-        
-        # Act
-        result = mock_green_home_planner.check_government_incentives(intervention)
-        
-        # Assert
-        assert result == expected_output
-        GreenHomePlanner.check_government_incentives.assert_called_once_with(intervention)
+def test_crewai_crew_init(mock_llm):
+    """Test CrewAI-Crew initialization."""
+    agent = CrewAI-Agent(role="Test", goal="Test", backstory="Test", llm=mock_llm)
+    crew = CrewAI_Crew(agents=[agent], tasks=[])
+    assert crew.agents == [agent]
+    assert crew.tasks == []
 
-    def test_run(self, mock_green_home_planner, mocker, capsys):
-        """Test run method"""
-        # Arrange
-        mocker.patch.object(GreenHomePlanner, 'analyze_energy_consumption', return_value=pd.DataFrame())
-        mocker.patch.object(GreenHomePlanner, 'suggest_sustainable_interventions', return_value=[{'name': 'test'}])
-        mocker.patch.object(GreenHomePlanner, 'estimate_costs_and_benefits', return_value={'costs': 100, 'benefits': 50})
-        mocker.patch.object(GreenHomePlanner, 'check_government_incentives', return_value={'incentives': 20})
-        
-        # Act
-        mock_green_home_planner.run()
-        
-        # Assert
-        captured = capsys.readouterr()
-        assert "Intervention: {'name': 'test'}" in captured.out
-        assert "Estimated costs: 100" in captured.out
-        assert "Estimated benefits: 50" in captured.out
-        assert "Government incentives: {'incentives': 20}" in captured.out
+def test_crewai_crew_kickoff(mock_llm, monkeypatch):
+    """Test kickoff method with mocked user input and response."""
+    agent = CrewAI-Agent(role="Test", goal="Test", backstory="Test", llm=mock_llm)
+    task = CrewAI_Task(description="Test", agent=agent)
+    crew = CrewAI_Crew(agents=[agent], tasks=[task])
+    
+    monkeypatch.setattr('builtins.input', lambda: "Test input")
+    agent.respond = MagicMock(return_value="Test response")
+    
+    crew.kickoff()
+    agent.respond.assert_called_once_with("Test input")
 
-    def test_analyze_energy_consumption_edge_case_empty_data(self, mock_green_home_planner, mocker):
-        """Test analyze_energy_consumption with empty data"""
-        # Arrange
-        expected_output = pd.DataFrame()
-        mocker.patch.object(GreenHomePlanner, 'analyze_energy_consumption', return_value=expected_output)
-        
-        # Act
-        result = mock_green_home_planner.analyze_energy_consumption()
-        
-        # Assert
-        assert result.empty
-        GreenHomePlanner.analyze_energy_consumption.assert_called_once()
+def test_create_agents(mock_llm):
+    """Test create_agents function."""
+    llm1 = MagicMock()
+    llm2 = MagicMock()
+    agents = create_agents(llm1, llm2)
+    assert len(agents) == 2
+    assert all(isinstance(agent, CrewAI-Agent) for agent in agents)
 
-    def test_suggest_sustainable_interventions_edge_case_empty_list(self, mock_green_home_planner, mocker):
-        """Test suggest_sustainable_interventions with empty list"""
-        # Arrange
-        expected_output = []
-        mocker.patch.object(GreenHomePlanner, 'suggest_sustainable_interventions', return_value=expected_output)
-        
-        # Act
-        result = mock_green_home_planner.suggest_sustainable_interventions()
-        
-        # Assert
-        assert result == expected_output
-        GreenHomePlanner.suggest_sustainable_interventions.assert_called_once()
+@patch('transformers.pipeline')
+def test_pipeline_creation(mock_pipeline):
+    """Test pipeline creation in create_agents."""
+    mock_pipeline.return_value = MagicMock()
+    create_agents(mock_pipeline(), mock_pipeline())
+    assert mock_pipeline.call_count == 2
 
-    def test_estimate_costs_and_benefits_edge_case_zero_costs(self, mock_green_home_planner, mocker):
-        """Test estimate_costs_and_benefits with zero costs"""
-        # Arrange
-        intervention = {'name': 'solar', 'type': 'panels'}
-        expected_output = {'costs': 0, 'benefits': 5000}
-        mocker.patch.object(GreenHomePlanner, 'estimate_costs_and_benefits', return_value=expected_output)
-        
-        # Act
-        result = mock_green_home_planner.estimate_costs_and_benefits(intervention)
-        
-        # Assert
-        assert result['costs'] == 0
-        GreenHomePlanner.estimate_costs_and_benefits.assert_called_once_with(intervention)
+def test_crewai_agent.respond_edge_cases(mock_llm):
+    """Test edge cases for respond method."""
+    agent = CrewAI-Agent(role="Test", goal="Test", backstory="Test", llm=mock_llm)
+    
+    # Test with empty input
+    response = agent.respond("")
+    assert response == "Test response"
+    
+    # Test with non-string input
+    response = agent.respond(123)
+    assert response == "Test response"
 
-    def test_check_government_incentives_edge_case_zero_incentives(self, mock_green_home_planner, mocker):
-        """Test check_government_incentives with zero incentives"""
-        # Arrange
-        intervention = {'name': 'solar', 'type': 'panels'}
-        expected_output = {'incentives': 0}
-        mocker.patch.object(GreenHomePlanner, 'check_government_incentives', return_value=expected_output)
-        
-        # Act
-        result = mock_green_home_planner.check_government_incentives(intervention)
-        
-        # Assert
-        assert result['incentives'] == 0
-        GreenHomePlanner.check_government_incentives.assert_called_once_with(intervention)
+def test_logging_error(mock_failing_llm, caplog):
+    """Test error logging in respond method."""
+    agent = CrewAI-Agent(role="Test", goal="Test", backstory="Test", llm=mock_failing_llm)
+    agent.respond("Test input")
+    assert "Error generating response: Test error" in caplog.text
