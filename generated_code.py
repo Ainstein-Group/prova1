@@ -1,45 +1,52 @@
 ```python
-import numpy as np
-import pandas as pd
-from typing import List, Dict, Any
+from crewai import Agent, Task, Crew
+from transformers import pipeline
+import logging
 
-class GreenHomePlanner:
-    def __init__(self, energy_consumption_data: pd.DataFrame, house_info: Dict[str, Any], user_preferences: Dict[str, Any]):
-        self.energy_consumption_data = energy_consumption_data
-        self.house_info = house_info
-        self.user_preferences = user_preferences
+logging.basicConfig(level=logging.INFO)
 
-    def analyze_energy_consumption(self) -> pd.DataFrame:
-        # TO DO: implement energy consumption analysis
-        pass
+class CrewAI-Agent:
+    def __init__(self, role, goal, backstory, llm):
+        self.role = role
+        self.goal = goal
+        self.backstory = backstory
+        self.llm = llm
 
-    def suggest_sustainable_interventions(self) -> List[Dict[str, Any]]:
-        # TO DO: implement sustainable intervention suggestion
-        pass
+    def respond(self, input_text: str) -> str:
+        try:
+            response = self.llm.generate(input_text, max_length=200)
+            return response[0]['generated_text']
+        except Exception as e:
+            logging.error(f"Error generating response: {e}")
+            return "Mi dispiace, non sono in grado di rispondere alla tua domanda."
 
-    def estimate_costs_and_benefits(self, intervention: Dict[str, Any]) -> Dict[str, Any]:
-        # TO DO: implement cost and benefit estimation
-        pass
+class CrewAI-Task:
+    def __init__(self, description, agent):
+        self.description = description
+        self.agent = agent
 
-    def check_government_incentives(self, intervention: Dict[str, Any]) -> Dict[str, Any]:
-        # TO DO: implement government incentive check
-        pass
+class CrewAI-Crew:
+    def __init__(self, agents, tasks):
+        self.agents = agents
+        self.tasks = tasks
 
-    def run(self) -> None:
-        energy_consumption_analysis = self.analyze_energy_consumption()
-        sustainable_interventions = self.suggest_sustainable_interventions()
-        for intervention in sustainable_interventions:
-            estimated_costs_and_benefits = self.estimate_costs_and_benefits(intervention)
-            government_incentives = self.check_government_incentives(intervention)
-            print(f"Intervention: {intervention['name']}")
-            print(f"Estimated costs: {estimated_costs_and_benefits['costs']}")
-            print(f"Estimated benefits: {estimated_costs_and_benefits['benefits']}")
-            print(f"Government incentives: {government_incentives}")
+    def kickoff(self):
+        for task in self.tasks:
+            agent = task.agent
+            input_text = input("Utente: ")
+            response = agent.respond(input_text)
+            print(f"Agente: {response}")
 
-if __name__ == "__main__":
-    energy_consumption_data = pd.read_csv("energy_consumption_data.csv")
-    house_info = {"house_size": 100, "house_type": "single_family"}
-    user_preferences = {"budget": 10000, "intervention_type": "solar_panels"}
-    green_home_planner = GreenHomePlanner(energy_consumption_data, house_info, user_preferences)
-    green_home_planner.run()
+def create_agents(llms1, llms2):
+    agent1 = CrewAI-Agent(role="Code Writer", goal="Scrivere codice Python per agenti CrewAI", backstory="Esperto di multi-agente.", llm=llms1)
+    agent2 = CrewAI-Agent(role="Code Writer", goal="Scrivere codice Python per agenti CrewAI", backstory="Esperto di multi-agente.", llm=llms2)
+    return [agent1, agent2]
+
+llms1 = pipeline("text-generation", model="t5-small")
+llms2 = pipeline("text-generation", model="t5-small")
+
+agents = create_agents(llms1, llms2)
+task = CrewAI-Task(description="Scrivere codice Python per un agente basato su prompt ottimizzato", agent=agents[0])
+crew = CrewAI-Crew(agents=agents, tasks=[task])
+crew.kickoff()
 ```
