@@ -1,57 +1,71 @@
-```
-from crewai import Agent, Task, Crew
-from typing import List, Dict
+```python
+import heapq
 import logging
 
-class TripPlannerAgent(Agent):
-    def __init__(self, llm: str):
-        super().__init__(role="Trip Planner", goal="Plan a trip", backstory="Expert in multi-agent systems.", llm=llm)
-        self.preferences: Dict[str, str] = {}
-        self.itinerary: List[Dict[str, str]] = []
+class Labirinto:
+    def __init__(self, grid, start, goal):
+        self.grid = grid
+        self.start = start
+        self.goal = goal
 
-    def plan_trip(self, preferences: Dict[str, str]) -> List[Dict[str, str]]:
-        self.preferences = preferences
-        # TO DO: implement trip planning logic
-        return self.itinerary
+    def heuristic(self, a, b):
+        return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
-    def book_flight(self, flight_info: Dict[str, str]) -> Dict[str, str]:
-        # TO DO: implement flight booking logic
-        return flight_info
+    def astar(self):
+        frontier = []
+        heapq.heappush(frontier, (0, self.start))
+        came_from = {}
+        cost_so_far = {}
+        came_from[self.start] = None
+        cost_so_far[self.start] = 0
 
-    def book_hotel(self, hotel_info: Dict[str, str]) -> Dict[str, str]:
-        # TO DO: implement hotel booking logic
-        return hotel_info
+        while frontier:
+            current = heapq.heappop(frontier)[1]
 
-    def book_activity(self, activity_info: Dict[str, str]) -> Dict[str, str]:
-        # TO DO: implement activity booking logic
-        return activity_info
+            if current == self.goal:
+                break
 
-class NotificationAgent(Agent):
-    def __init__(self, llm: str):
-        super().__init__(role="Notification", goal="Send notifications", backstory="Expert in notification systems.", llm=llm)
-        self.notifications: List[Dict[str, str]] = []
+            for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                next_cell = (current[0] + dx, current[1] + dy)
+                if (0 <= next_cell[0] < len(self.grid) and
+                    0 <= next_cell[1] < len(self.grid[0]) and
+                    self.grid[next_cell[0]][next_cell[1]] == 0):
+                    new_cost = cost_so_far[current] + 1
+                    if next_cell not in cost_so_far or new_cost < cost_so_far[next_cell]:
+                        cost_so_far[next_cell] = new_cost
+                        priority = new_cost + self.heuristic(self.goal, next_cell)
+                        heapq.heappush(frontier, (priority, next_cell))
+                        came_from[next_cell] = current
 
-    def send_notification(self, notification: Dict[str, str]) -> None:
-        self.notifications.append(notification)
-        logging.info("Notification sent: %s", notification)
+        if current != self.goal:
+            return "Nessun percorso possibile"
 
-class Crew:
-    def __init__(self, agents: List[Agent], tasks: List[Task]):
-        self.agents = agents
-        self.tasks = tasks
+        path = []
+        step = current
+        while step:
+            path.append(step)
+            step = came_from.get(step)
+        path.reverse()
 
-    def kickoff(self) -> None:
-        for agent in self.agents:
-            agent.start()
-        for task in self.tasks:
-            task.start()
+        return path
+
+    def __str__(self):
+        return str(self.grid)
+
+def main():
+    grid = [
+        [0, 1, 0],
+        [0, 1, 0],
+        [0, 0, 0]
+    ]
+    start = (0, 0)
+    goal = (2, 2)
+    labirinto = Labirinto(grid, start, goal)
+    logging.info("Inizia ricerca percorso...")
+    path = labirinto.astar()
+    logging.info("Percorso trovato: %s", path)
 
 if __name__ == "__main__":
-    llms1 = "your_llm_model_here"
-    llms2 = "your_llm_model_here"
-    agent1 = TripPlannerAgent(llms1)
-    agent2 = NotificationAgent(llms2)
-    task = Task(description="Plan a trip", agent=agent1)
-    crew = Crew(agents=[agent1, agent2], tasks=[task])
-    crew.kickoff()
+    main()
 ```
+This code defines a `Labirinto` class that implements the A* algorithm to find the shortest path from a start to a goal position in a grid. The `main` function creates a grid, sets the start and goal positions, and runs the A* algorithm to find the path. The code includes logging statements to track the progress of the algorithm.
