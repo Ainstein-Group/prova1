@@ -1,109 +1,74 @@
-Test unitari completi con pytest
+Your final answer must be the great and the most complete as possible, it must be outcome described.
 
 ```python
 import pytest
-from unittest.mock import patch
-from labirinto import Labirinto
-import logging
+from unittest.mock import MagicMock
+from your_module import Vase, WaterMeasurer  # Sostituire 'your_module' con il nome del modulo reale
 
 @pytest.fixture
-def empty_grid():
-    """Fixture for an empty grid."""
-    return [
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0]
-    ]
+def vase_empty():
+    """Fixture for an empty vase with capacity 5"""
+    return Vase(5)
 
 @pytest.fixture
-def default_grid():
-    """Fixture for the default grid used in main."""
-    return [
-        [0, 1, 0],
-        [0, 1, 0],
-        [0, 0, 0]
-    ]
+def vase_filled(vase_empty):
+    """Fixture for a filled vase"""
+    vase = vase_empty
+    vase.fill()
+    return vase
 
 @pytest.fixture
-def same_start_goal_grid():
-    """Fixture for grid where start and goal are the same."""
-    return [
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0]
-    ]
+def water_measurer():
+    """Fixture for WaterMeasurer instance"""
+    return WaterMeasurer()
 
-def test_heuristic():
-    """Test the heuristic method with various inputs."""
-    lab = Labirinto([[0,0], [0,0]], (0,0), (0,0))
-    assert lab.heuristic((0,0), (0,0)) == 0
-    assert lab.heuristic((0,0), (1,1)) == 2
-    assert lab.heuristic((2,3), (4,5)) == 4
-    assert lab.heuristic((5,5), (2,3)) == 4
+def test_vase_init(vase_empty):
+    """Test that vase is initialized with correct water level"""
+    assert vase_empty.get_water() == 0
+    assert vase_empty.capacity == 5
 
-def test_astar_normal_case(default_grid):
-    """Test A* algorithm with a normal case where path exists."""
-    start = (0, 0)
-    goal = (2, 2)
-    lab = Labirinto(default_grid, start, goal)
-    path = lab.astar()
-    assert path is not None
-    assert path[0] == goal
+def test_vase_fill(vase_empty):
+    """Test that fill method sets water to capacity"""
+    vase_empty.fill()
+    assert vase_empty.get_water() == 5
 
-def test_astar_no_path(empty_grid):
-    """Test A* algorithm when no path exists."""
-    # Block all paths
-    grid = [
-        [0, 1, 0],
-        [1, 1, 1],
-        [0, 1, 0]
-    ]
-    start = (0, 0)
-    goal = (2, 2)
-    lab = Labirinto(grid, start, goal)
-    path = lab.astar()
-    assert path == "Nessun percorso possibile"
+def test_vase_empty(vase_filled):
+    """Test that empty method resets water to 0"""
+    vase_filled.empty()
+    assert vase_filled.get_water() == 0
 
-def test_astar_start_equals_goal(same_start_goal_grid):
-    """Test A* when start equals goal."""
-    start = (1, 1)
-    goal = (1, 1)
-    lab = Labirinto(same_start_goal_grid, start, goal)
-    path = lab.astar()
-    assert path == [start]
+def test_vase_transfer_valid_amount(vase_filled):
+    """Test transferring valid amount of water"""
+    vase_filled.transfer(2)
+    assert vase_filled.get_water() == 3
 
-def test_str_method(default_grid):
-    """Test the __str__ method returns the grid as string."""
-    lab = Labirinto(default_grid, (0,0), (0,0))
-    str_repr = str(lab)
-    assert str_repr == str(default_grid)
+def test_vase_transfer_invalid_amount(vase_filled):
+    """Test that transferring more water than available raises ValueError"""
+    with pytest.raises(ValueError):
+        vase_filled.transfer(10)
 
-def test_main_function(default_grid):
-    """Test the main function calls A* correctly."""
-    with patch('labirinto.Labirinto') as mock_lab:
-        instance = mock_lab.return_value
-        instance.astar.return_value = [(2,2)]
-        
-        main()
-        
-        instance.astar.assert_called_once()
+def test_vase_get_water(vase_filled):
+    """Test that get_water returns current water level"""
+    vase_filled.transfer(1)
+    assert vase_filled.get_water() == 4
 
-def test_logging_info(main_function):
-    """Test logging.info is called with correct messages."""
-    with patch('logging.info') as mock_logging:
-        main()
-        mock_logging.assert_called_with("Percorso trovato: %s", [(2, 2)])
+def test_water_measurer_measure(water_measurer):
+    """Test that measure method returns correct operations list"""
+    operations = water_measurer.measure()
+    assert len(operations) > 0
+    assert all(isinstance(op, str) for op in operations)
 
-def test_logging_start(main_function):
-    """Test logging.info is called when search starts."""
-    with patch('logging.info') as mock_logging:
-        main()
-        mock_logging.assert_called_with("Inizia ricerca percorso...")
+def test_water_measurer_final_levels(water_measurer):
+    """Test that final water levels are correct after measurement"""
+    operations = water_measurer.measure()
+    assert water_measurer.vase5.get_water() == 4
+    assert water_measurer.vase3.get_water() == 3
 
-def test_heuristic_edge_cases():
-    """Test heuristic with edge cases."""
-    lab = Labirinto([[0,0], [0,0]], (0,0), (0,0))
-    assert lab.heuristic((0,0), (0,0)) == 0
-    assert lab.heuristic((0,0), (10,10)) == 20
-    assert lab.heuristic((-1,-1), (1,1)) == 4
+def test_water_measurer_empty_start(water_measurer):
+    """Test measure method when vase5 starts with less than 4 liters"""
+    vase5 = water_measurer.vase5
+    vase5.water = 3  # Simulate vase5 with less than 4 liters
+    operations = water_measurer.measure()
+    assert len(operations) == 0
+    assert vase5.get_water() == 3
 ```
