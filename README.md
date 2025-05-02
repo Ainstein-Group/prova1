@@ -1,115 +1,110 @@
 ```markdown
-# CrewAI: A Framework for Multi-Agent Trip Planning
+# Labirinto: Un algoritmo A* per la ricerca di percorsi
 
 ## Descrizione
 
-CrewAI è un framework Python per la pianificazione di viaggi multi-agente. Utilizza agenti intelligenti, ognuno con un ruolo specifico, per gestire diverse fasi del processo di pianificazione, come la ricerca di voli, hotel e attività. 
+Questo progetto implementa l'algoritmo A* per trovare il percorso più breve tra due punti in un labirinto rappresentato da una matrice bidimensionale. L'algoritmo è stato implementato in Python e utilizza una struttura dati heap per gestire la priorità delle celle da esplorare.
 
-L'architettura basata su agenti permette un'alta flessibilità e scalabilità, consentendo di aggiungere nuovi agenti e funzionalità in modo modulare.
+## Requisiti e Dipendenze
 
-## Requisiti
+* Python 3.6 o superiore
+* `heapq` (modulo standard Python)
+* `logging` (modulo standard Python)
 
-* Python 3.7 o superiore
-* LLM (Large Language Model) compatibile con la libreria `crewai` (ad esempio, OpenAI GPT-3)
+## Guida all'installazione
 
-## Dipendenze
-
-* `crewai`: Libreria per la gestione degli agenti e delle task.
-* `typing`: Per la definizione di tipi di dati.
-* `logging`: Per la registrazione dei log.
-
-Puoi installare le dipendenze utilizzando pip:
-
-```bash
-pip install crewai typing logging
-```
+1. Clone il repository: `git clone https://github.com/your-username/labirinto.git`
+2. Installa le dipendenze: `pip install -r requirements.txt`
 
 ## Guida all'utilizzo
 
-Ecco un esempio di come utilizzare CrewAI per pianificare un viaggio:
-
-1. **Importa le librerie necessarie:**
+Per utilizzare il progetto, è possibile eseguire il file `main.py`. Il codice definisce un labirinto predefinito, un punto di partenza e un punto di arrivo. L'algoritmo A* viene quindi utilizzato per trovare il percorso tra questi due punti.
 
 ```python
-from crewai import Agent, Task, Crew
-from typing import Dict
+import logging
+
+# Configura il livello di log
+logging.basicConfig(level=logging.INFO)
+
+# Definisci il labirinto
+grid = [
+    [0, 1, 0],
+    [0, 1, 0],
+    [0, 0, 0]
+]
+start = (0, 0)
+goal = (2, 2)
+
+# Crea un'istanza della classe Labirinto
+labirinto = Labirinto(grid, start, goal)
+
+# Esegui l'algoritmo A*
+path = labirinto.astar()
+
+# Stampa il percorso trovato
+logging.info("Percorso trovato: %s", path)
+
 ```
 
-2. **Definisci i tuoi agenti:**
+**Esempio di output:**
 
-```python
-class TripPlannerAgent(Agent):
-    # ... (implementazione)
+```
+Inizia ricerca percorso...
+Percorso trovato: [(0, 0), (1, 0), (2, 0), (2, 1), (2, 2)]
 ```
 
-3. **Crea una task:**
+## Architettura e Componenti
 
-```python
-task = Task(description="Plan a trip", agent=trip_planner_agent)
-```
+Il progetto è strutturato in un unico file Python, `labirinto.py`. La classe principale `Labirinto` gestisce l'algoritmo A* e la rappresentazione del labirinto. 
 
-4. **Crea un oggetto Crew:**
+**Componenti principali:**
 
-```python
-crew = Crew(agents=[trip_planner_agent], tasks=[task])
-```
-
-5. **Avvia il processo di pianificazione:**
-
-```python
-crew.kickoff()
-```
-
-## Architettura
-
-CrewAI è strutturato in tre componenti principali:
-
-* **Agenti:** Sono entità autonome che eseguono compiti specifici, come la pianificazione del viaggio, l'invio di notifiche, etc.
-* **Task:** Rappresentano compiti specifici che devono essere eseguiti. Ogni task è associato a un agente responsabile della sua esecuzione.
-* **Crew:** Gestisce la collaborazione tra gli agenti e le task. Avvia i processi e coordina l'esecuzione delle attività.
+* **Classe `Labirinto`:**
+    * `__init__(self, grid, start, goal)`: Inizializza il labirinto con la matrice `grid`, il punto di partenza `start` e il punto di arrivo `goal`.
+    * `heuristic(self, a, b)`: Calcola la distanza euristica tra due punti.
+    * `astar(self)`: Esegue l'algoritmo A* per trovare il percorso.
+    * `__str__(self)`: Restituisce una rappresentazione stringa del labirinto.
 
 ## API Reference
 
-### Classe `Agent`
+**Classe `Labirinto`:**
 
-* **`__init__(self, role: str, goal: str, backstory: str, llm: str)`:** Costruttore dell'agente.
-    * `role`: Il ruolo dell'agente.
-    * `goal`: L'obiettivo dell'agente.
-    * `backstory`: Una breve descrizione dell'agente.
-    * `llm`: Il modello linguistico utilizzato dall'agente.
+* **`__init__(self, grid, start, goal)`:**
 
-* **`start(self)`:** Avvia l'esecuzione dell'agente.
+    * `grid`: Matrice bidimensionale che rappresenta il labirinto, dove 0 indica una cella percorribile e 1 indica un ostacolo.
+    * `start`: Tuple che rappresenta le coordinate del punto di partenza.
+    * `goal`: Tuple che rappresenta le coordinate del punto di arrivo.
 
-### Classe `Task`
+* **`heuristic(self, a, b)`:**
 
-* **`__init__(self, description: str, agent: Agent)`:** Costruttore della task.
-    * `description`: Una descrizione del compito.
-    * `agent`: L'agente responsabile dell'esecuzione del compito.
+    * Calcola la distanza euristica tra due punti `a` e `b` utilizzando la distanza Manhattan.
 
-* **`start(self)`:** Avvia l'esecuzione del compito.
+* **`astar(self)`:**
 
-### Classe `Crew`
+    * Esegue l'algoritmo A* per trovare il percorso tra il punto di partenza e il punto di arrivo. Restituisce una lista di tuple che rappresentano le coordinate del percorso, oppure la stringa "Nessun percorso possibile" se non esiste un percorso.
 
-* **`__init__(self, agents: List[Agent], tasks: List[Task])`:** Costruttore del crew.
-    * `agents`: Una lista di agenti.
-    * `tasks`: Una lista di task.
+* **`__str__(self)`:**
 
-* **`kickoff(self)`:** Avvia l'esecuzione di tutti gli agenti e le task.
+    * Restituisce una rappresentazione stringa del labirinto.
 
-## Guida ai test
+## Guida ai Test
 
-CrewAI include un suite di test unitari per garantire la corretta funzionalità del framework. Puoi eseguire i test utilizzando il comando:
+Il progetto include un test unitario con pytest per verificare il corretto funzionamento dell'algoritmo A* e delle sue funzioni. 
 
-```bash
-pytest
-```
+Per eseguire i test, è possibile utilizzare il comando `pytest`.
 
-## Contribuzione
+## Contribuisci
 
-Contribuisci al progetto CrewAI!
+Questo progetto è open-source e benvenuto ogni contributo.
 
-* Apri un issue per segnalare bug o richieste di funzionalità.
-* Crea un pull request per proporre modifiche al codice.
+Per contribuire, è possibile:
+
+* Richiedere nuove funzionalità
+* Rilevare e segnalare bug
+* Migliorare la documentazione
+
+
+
 
 ## Licenza
 
