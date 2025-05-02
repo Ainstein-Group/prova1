@@ -1,114 +1,91 @@
 ```markdown
-# Labirinto: Un algoritmo A* per la ricerca di percorsi
+# Water Measurer
 
-## Descrizione
+This project provides a simple Python implementation of a water measurer using two vases with different capacities. 
 
-Questo progetto implementa l'algoritmo A* per trovare il percorso più breve tra due punti in un labirinto rappresentato da una matrice bidimensionale. L'algoritmo è stato implementato in Python e utilizza una struttura dati heap per gestire la priorità delle celle da esplorare.
+## Description
 
-## Requisiti e Dipendenze
+The water measurer simulates the process of measuring a specific volume of water (in this case, 3 liters) using two vases: a larger vase with a capacity of 5 liters and a smaller vase with a capacity of 3 liters. It demonstrates a classic algorithm for measuring arbitrary volumes using only these two vases.
 
-* Python 3.6 o superiore
-* `heapq` (modulo standard Python)
-* `logging` (modulo standard Python)
+## Requirements and Dependencies
 
-## Guida all'installazione
+* Python 3.6 or higher
 
-1. Clone il repository: `git clone https://github.com/your-username/labirinto.git`
-2. Installa le dipendenze: `pip install -r requirements.txt`
+## Installation
 
-## Guida all'utilizzo
+1. Clone the repository: `git clone https://github.com/your-username/water-measurer.git`
+2. Navigate to the project directory: `cd water-measurer`
+3. Install the required dependencies: `pip install -r requirements.txt`
 
-Per utilizzare il progetto, è possibile eseguire il file `main.py`. Il codice definisce un labirinto predefinito, un punto di partenza e un punto di arrivo. L'algoritmo A* viene quindi utilizzato per trovare il percorso tra questi due punti.
+## Usage
 
 ```python
-import logging
+from your_module import WaterMeasurer  # Replace 'your_module' with the actual module name
 
-# Configura il livello di log
-logging.basicConfig(level=logging.INFO)
+measurer = WaterMeasurer()
+operations = measurer.measure()
 
-# Definisci il labirinto
-grid = [
-    [0, 1, 0],
-    [0, 1, 0],
-    [0, 0, 0]
-]
-start = (0, 0)
-goal = (2, 2)
+print("Operations:")
+for operation in operations:
+    print(operation)
 
-# Crea un'istanza della classe Labirinto
-labirinto = Labirinto(grid, start, goal)
-
-# Esegui l'algoritmo A*
-path = labirinto.astar()
-
-# Stampa il percorso trovato
-logging.info("Percorso trovato: %s", path)
-
+print(f"Final water level in vase 3: {measurer.vase3.get_water()} liters")
+print(f"Final water level in vase 5: {measurer.vase5.get_water()} liters")
 ```
 
-**Esempio di output:**
+**Explanation:**
 
-```
-Inizia ricerca percorso...
-Percorso trovato: [(0, 0), (1, 0), (2, 0), (2, 1), (2, 2)]
-```
+* Create an instance of `WaterMeasurer`.
+* Call the `measure()` method to perform the measurement process.
+* The method returns a list of strings describing the steps taken to measure the water.
+* The final water levels in both vases are printed.
 
-## Architettura e Componenti
+## Architecture
 
-Il progetto è strutturato in un unico file Python, `labirinto.py`. La classe principale `Labirinto` gestisce l'algoritmo A* e la rappresentazione del labirinto. 
+The project consists of two main classes:
 
-**Componenti principali:**
+* **`Vase`**: Represents a vase with a specific capacity and a current water level.
+* **`WaterMeasurer`**: Manages the two vases and implements the measurement algorithm.
 
-* **Classe `Labirinto`:**
-    * `__init__(self, grid, start, goal)`: Inizializza il labirinto con la matrice `grid`, il punto di partenza `start` e il punto di arrivo `goal`.
-    * `heuristic(self, a, b)`: Calcola la distanza euristica tra due punti.
-    * `astar(self)`: Esegue l'algoritmo A* per trovare il percorso.
-    * `__str__(self)`: Restituisce una rappresentazione stringa del labirinto.
+**Class Diagram:**
+
+[Include a simple class diagram illustrating the relationship between `Vase` and `WaterMeasurer` here.]
 
 ## API Reference
 
-**Classe `Labirinto`:**
+**`Vase` Class:**
 
-* **`__init__(self, grid, start, goal)`:**
+* **`__init__(self, capacity: int)`**: Initializes a new vase with the given capacity.
+* **`fill(self)`**: Fills the vase to its maximum capacity.
+* **`empty(self)`**: Empties the vase.
+* **`transfer(self, amount: int)`**: Transfers the given amount of water from the vase to another vase.
+* **`get_water(self) -> int`**: Returns the current water level in the vase.
 
-    * `grid`: Matrice bidimensionale che rappresenta il labirinto, dove 0 indica una cella percorribile e 1 indica un ostacolo.
-    * `start`: Tuple che rappresenta le coordinate del punto di partenza.
-    * `goal`: Tuple che rappresenta le coordinate del punto di arrivo.
+**`WaterMeasurer` Class:**
 
-* **`heuristic(self, a, b)`:**
+* **`__init__(self)`**: Initializes a new `WaterMeasurer` with two vases: one with a capacity of 5 liters and one with a capacity of 3 liters.
+* **`measure(self) -> List[str]`**: Performs the water measurement process and returns a list of strings describing the steps taken.
 
-    * Calcola la distanza euristica tra due punti `a` e `b` utilizzando la distanza Manhattan.
+## Testing
 
-* **`astar(self)`:**
+The project includes unit tests using the `pytest` framework. To run the tests, execute the following command in the project directory:
 
-    * Esegue l'algoritmo A* per trovare il percorso tra il punto di partenza e il punto di arrivo. Restituisce una lista di tuple che rappresentano le coordinate del percorso, oppure la stringa "Nessun percorso possibile" se non esiste un percorso.
+```bash
+pytest
+```
 
-* **`__str__(self)`:**
+## Contributing
 
-    * Restituisce una rappresentazione stringa del labirinto.
+Contributions are welcome! Please follow these guidelines:
 
-## Guida ai Test
+* Fork the repository.
+* Create a new branch for your changes.
+* Write clear and concise commit messages.
+* Submit a pull request.
 
-Il progetto include un test unitario con pytest per verificare il corretto funzionamento dell'algoritmo A* e delle sue funzioni. 
+## License
 
-Per eseguire i test, è possibile utilizzare il comando `pytest`.
-
-## Contribuisci
-
-Questo progetto è open-source e benvenuto ogni contributo.
-
-Per contribuire, è possibile:
-
-* Richiedere nuove funzionalità
-* Rilevare e segnalare bug
-* Migliorare la documentazione
-
-
-
-
-## Licenza
-
-Questo progetto è rilasciato sotto la licenza MIT.
+This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
 
 
 
