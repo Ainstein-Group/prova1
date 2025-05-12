@@ -1,92 +1,104 @@
 ```markdown
-# Water Measurer
+# Tic Tac Toe
 
-This project provides a simple Python implementation of a water measurer using two vases with different capacities. 
+## Descrizione
 
-## Description
+Questo progetto implementa un gioco di Tic Tac Toe in Python con due agenti che possono giocare contro se stessi o contro un giocatore umano. Il gioco può essere giocato su una griglia di dimensioni variabili.
 
-The water measurer simulates the process of measuring a specific volume of water (in this case, 3 liters) using two vases: a larger vase with a capacity of 5 liters and a smaller vase with a capacity of 3 liters. It demonstrates a classic algorithm for measuring arbitrary volumes using only these two vases.
+## Requisiti e Dipendenze
 
-## Requirements and Dependencies
+* Python 3.6 o superiore
+* pytest (per i test)
 
-* Python 3.6 or higher
+## Guida all'installazione
 
-## Installation
+1.  Clone o scarica il repository.
+2.  Apri un terminale e naviga nella directory del progetto.
+3.  Esegui il comando `pip install -r requirements.txt` per installare le dipendenze.
 
-1. Clone the repository: `git clone https://github.com/your-username/water-measurer.git`
-2. Navigate to the project directory: `cd water-measurer`
-3. Install the required dependencies: `pip install -r requirements.txt`
+## Guida all'utilizzo
 
-## Usage
+Per giocare al Tic Tac Toe, puoi eseguire il file `main.py`. Il gioco inizierà con due agenti casuali. Puoi modificare il nome e la strategia degli agenti nel file `main.py`.
 
-```python
-from your_module import WaterMeasurer  # Replace 'your_module' with the actual module name
+**Esempio di gioco:**
 
-measurer = WaterMeasurer()
-operations = measurer.measure()
+```
+Agent 1:  Test Agent (random)
+Agent 2:  Test Agent (random)
 
-print("Operations:")
-for operation in operations:
-    print(operation)
-
-print(f"Final water level in vase 3: {measurer.vase3.get_water()} liters")
-print(f"Final water level in vase 5: {measurer.vase5.get_water()} liters")
+     0 0 0
+     0 0 0
+     0 0 0
+     
+     1 0 0
+     0 0 0
+     0 0 0
+     
+     0 1 0
+     0 0 0
+     0 0 0
+     
+Test Agent wins!
 ```
 
-**Explanation:**
+**Strategie disponibili:**
 
-* Create an instance of `WaterMeasurer`.
-* Call the `measure()` method to perform the measurement process.
-* The method returns a list of strings describing the steps taken to measure the water.
-* The final water levels in both vases are printed.
+*   `random`: L'agente sceglie una mossa casuale.
+*   `minimax`: L'agente utilizza l'algoritmo minimax per scegliere la mossa migliore. (Da implementare)
 
-## Architecture
+## Architettura
 
-The project consists of two main classes:
+Il gioco è composto da tre classi principali:
 
-* **`Vase`**: Represents a vase with a specific capacity and a current water level.
-* **`WaterMeasurer`**: Manages the two vases and implements the measurement algorithm.
-
-**Class Diagram:**
-
-[Include a simple class diagram illustrating the relationship between `Vase` and `WaterMeasurer` here.]
+*   **Board:** Rappresenta la griglia di gioco.
+*   **Agent:** Rappresenta un agente che gioca al Tic Tac Toe.
+*   **Game:** Gestisce il flusso di gioco e le interazioni tra gli agenti.
 
 ## API Reference
 
-**`Vase` Class:**
+**Board:**
 
-* **`__init__(self, capacity: int)`**: Initializes a new vase with the given capacity.
-* **`fill(self)`**: Fills the vase to its maximum capacity.
-* **`empty(self)`**: Empties the vase.
-* **`transfer(self, amount: int)`**: Transfers the given amount of water from the vase to another vase.
-* **`get_water(self) -> int`**: Returns the current water level in the vase.
+| Metodo | Descrizione |
+|---|---|
+| `__init__(self, size)` | Inizializza la griglia di gioco con la dimensione specificata. |
+| `print_board(self)` | Stampa la griglia di gioco a schermo. |
 
-**`WaterMeasurer` Class:**
+**Agent:**
 
-* **`__init__(self)`**: Initializes a new `WaterMeasurer` with two vases: one with a capacity of 5 liters and one with a capacity of 3 liters.
-* **`measure(self) -> List[str]`**: Performs the water measurement process and returns a list of strings describing the steps taken.
+| Attributo | Descrizione |
+|---|---|
+| `name` | Il nome dell'agente. |
+| `strategy` | La strategia di gioco dell'agente. |
+| `score` | Il punteggio dell'agente. |
 
-## Testing
+| Metodo | Descrizione |
+|---|---|
+| `__init__(self, name, strategy)` | Inizializza l'agente con il nome e la strategia specificati. |
+| `make_move(self, board)` | Fa una mossa nel gioco in base alla strategia dell'agente. |
 
-The project includes unit tests using the `pytest` framework. To run the tests, execute the following command in the project directory:
+**Game:**
 
-```bash
-pytest
-```
+| Attributo | Descrizione |
+|---|---|
+| `board` | L'istanza della classe `Board`. |
+| `agent1` | L'istanza della classe `Agent` per il primo giocatore. |
+| `agent2` | L'istanza della classe `Agent` per il secondo giocatore. |
+| `current_turn` | Il numero del giocatore corrente. |
 
-## Contributing
+| Metodo | Descrizione |
+|---|---|
+| `__init__(self, board_size, agent1, agent2)` | Inizializza il gioco con la dimensione della griglia e gli agenti. |
+| `start_game(self)` | Avvia il gioco e gestisce il flusso di gioco. |
+| `check_win(self)` | Controlla se un giocatore ha vinto la partita. |
 
-Contributions are welcome! Please follow these guidelines:
+## Guida ai test
 
-* Fork the repository.
-* Create a new branch for your changes.
-* Write clear and concise commit messages.
-* Submit a pull request.
+Per eseguire i test, usa il comando `pytest`.
 
-## License
+## Contribuzione e Licenza
 
-This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
+Questo progetto è open-source e licenziato sotto la licenza MIT.
 
-
+Contribuisci al progetto inviando pull request con i tuoi miglioramenti e correzioni.
 
 ```
