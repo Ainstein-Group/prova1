@@ -1,47 +1,58 @@
-```python
-from typing import List
+```
+import random
+import logging
 
-class Vase:
-    def __init__(self, capacity: int):
-        self.capacity = capacity
-        self.water = 0
+class Board:
+    def __init__(self, size):
+        self.size = size
+        self.board = [[0 for _ in range(size)] for _ in range(size)]
 
-    def fill(self) -> None:
-        self.water = self.capacity
+    def print_board(self):
+        for row in self.board:
+            print(" ".join(str(cell) for cell in row))
 
-    def empty(self) -> None:
-        self.water = 0
+class Agent:
+    def __init__(self, name, strategy):
+        self.name = name
+        self.strategy = strategy
+        self.score = 0
 
-    def transfer(self, amount: int) -> None:
-        if amount > self.water:
-            raise ValueError("Not enough water in the vase")
-        self.water -= amount
+    def make_move(self, board):
+        if self.strategy == "random":
+            return random.randint(0, board.size - 1)
+        elif self.strategy == "minimax":
+            # implement minimax algorithm
+            pass
+        else:
+            raise ValueError("Invalid strategy")
 
-    def get_water(self) -> int:
-        return self.water
+class Game:
+    def __init__(self, board_size, agent1, agent2):
+        self.board = Board(board_size)
+        self.agent1 = agent1
+        self.agent2 = agent2
+        self.current_turn = 1
 
-class WaterMeasurer:
-    def __init__(self):
-        self.vase5 = Vase(5)
-        self.vase3 = Vase(3)
+    def start_game(self):
+        while True:
+            self.board.print_board()
+            move = self.agent1.make_move(self.board)
+            self.board.board[self.current_turn - 1][move] = 1
+            self.current_turn = 2 if self.current_turn == 1 else 1
+            if self.check_win():
+                self.board.print_board()
+                print(f"{self.agent1.name} wins!")
+                break
 
-    def measure(self) -> List[str]:
-        self.vase5.fill()
-        operations = []
-        while self.vase5.water > 4:
-            if self.vase5.water > 3:
-                self.vase3.transfer(3)
-                operations.append(f"Transfer 3 liters from vase 5 to vase 3")
-            self.vase5.transfer(2)
-            operations.append(f"Transfer 2 liters from vase 5 to vase 3")
-        return operations
+    def check_win(self):
+        for i in range(self.board.size):
+            if self.board.board[0][i] == 1 and self.board.board[1][i] == 1:
+                return True
+        return False
 
 if __name__ == "__main__":
-    measurer = WaterMeasurer()
-    operations = measurer.measure()
-    print("Operations:")
-    for operation in operations:
-        print(operation)
-    print(f"Final water level in vase 3: {measurer.vase3.get_water()} liters")
-    print(f"Final water level in vase 5: {measurer.vase5.get_water()} liters")
+    agent1 = Agent("Agent 1", "random")
+    agent2 = Agent("Agent 2", "random")
+    game = Game(3, agent1, agent2)
+    game.start_game()
 ```
